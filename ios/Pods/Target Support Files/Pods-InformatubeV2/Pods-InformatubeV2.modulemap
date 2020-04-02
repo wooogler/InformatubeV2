@@ -1,0 +1,6 @@
+module Pods_InformatubeV2 {
+  umbrella header "Pods-InformatubeV2-umbrella.h"
+
+  export *
+  module * { export * }
+}
