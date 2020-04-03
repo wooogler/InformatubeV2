@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 
-const SystemListHeader = ({handlePressOpen}) => {
+const SystemListHeader = ({handlePressOpen, time}) => {
   return (
     <>
       <View style={styles.infoContainer}>
@@ -28,7 +28,9 @@ const SystemListHeader = ({handlePressOpen}) => {
               uri: 'https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png'
             }}
           />
-          <Text style={styles.timeText}>2:12</Text>
+          <TouchableOpacity>
+            <Text style={styles.timeText}>{time}</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handlePressOpen}
           >

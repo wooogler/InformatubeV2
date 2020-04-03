@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useEffect} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
@@ -22,8 +22,10 @@ import {
   Dimensions,
   TouchableOpacity,
 } from 'react-native';
+import YoutubePlayer from 'react-native-youtube-iframe';
 import CommentItem from './components/CommentItem';
 import SystemListHeader from './components/SystemListHeader';
+import PopupView from './components/PopupView';
 
 const commentDummy = [
   {
@@ -47,35 +49,17 @@ const commentDummy = [
 ]
 
 const appHeight = Dimensions.get('window').height;
+const appWidth = Dimensions.get('window').width;
 
 const App = () => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
-  const inputRef = useRef();
+  const [videoId, setVideoId] = useState("AVAc1gYLZK0");
+  const [opened, setOpened] = useState(false);
+  const [time, setTime] = useState("2:02");
+  const playerRef = useRef();
 
-  const handlePressOpen =() => {
-    Animated.timing(viewerY,{
-      toValue:0,
-      duration: 500,
-    }).start();
-    inputRef.current.focus();
-  }
-
-  const handlePressClose = () => {
-    Animated.timing(viewerY,{
-      toValue: appHeight-200,
-      duration: 500,
-    }).start();
-    inputRef.current.blur();
-  }
-
-  const animatedStyle = () => {
-    return {
-      width: '100%',
-      height: 300,
-      position: 'absolute',
-      backgroundColor: 'red',
-      top: viewerY,
-    }
+  const handlePressOpen = () => {
+    setOpened(true);
   }
 
   return (
@@ -83,34 +67,22 @@ const App = () => {
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.appContainer}>
         <View style={styles.playerContatiner}>
+          <YoutubePlayer
+            videoId={videoId}
+            width={appWidth}
+            height={appWidth*9/16}
+            ref={playerRef}
+          />
         </View>
         <View style={styles.systemListContainer}>
           <FlatList 
             style={styles.systemList}
-            ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen}/>}
+            ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time}/>}
             data={commentDummy}
             keyExtractor={item => item.id.toString()}
             renderItem={({item}) => <CommentItem data={item}/>}
           />
-          <Animated.View style={animatedStyle()}>
-            <View style={styles.headerContainer}>
-              <TouchableOpacity>
-                <Text style={styles.timeText}>2:12</Text>
-              </TouchableOpacity>
-              <TextInput
-                style={styles.textInput}
-                placeholder='키워드 검색...'
-                ref={inputRef}
-              />
-              <TouchableOpacity onPress={handlePressClose}>
-                <Text>X</Text>
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.mainContainer}>
-              
-            </ScrollView>
-            
-          </Animated.View>
+          <PopupView opened={opened} setOpened={setOpened}/>
         </View>
       </SafeAreaView>
     </>
@@ -123,8 +95,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   playerContatiner: {
-    backgroundColor: 'black',
     aspectRatio: 16/9,
+    width: appWidth,
   },
   systemListContainer: {
     flex:1,
@@ -132,27 +104,6 @@ const styles = StyleSheet.create({
   systemList: {
     backgroundColor: 'grey',
     flex: 1,
-  },
-  headerContainer: {
-    backgroundColor: 'white',
-    height: 50,
-    padding: 15,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  mainContainer: {
-
-  },
-  timeText: {
-    fontSize: 15,
-    color: '#1366D4',
-    flex: 1,
-    marginRight: 5
-  },
-  textInput: {
-    fontSize: 15,
-    color: '#606060',
-    flex: 10,
   },
 });
 
