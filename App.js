@@ -6,17 +6,24 @@
  * @flow strict-local
  */
 
-import React from 'react';
+import React, {useState, useRef} from 'react';
 import {
   SafeAreaView,
   StyleSheet,
   View,
   Text,
   StatusBar,
+  ScrollView,
   Image,
   FlatList,
   TextInput,
+  Animated,
+  Alert,
+  Dimensions,
+  TouchableOpacity,
 } from 'react-native';
+import CommentItem from './components/CommentItem';
+import SystemListHeader from './components/SystemListHeader';
 
 const commentDummy = [
   {
@@ -39,60 +46,72 @@ const commentDummy = [
   },
 ]
 
-const ListHeader = () => {
-  return (
-    <>
-      <View style={styles.infoContainer}>
-        <Text style={styles.videoTitle}>
-          Video Title
-        </Text>
-        <Text style={styles.videoUploaderName}>
-          Video Uploader
-        </Text>
-      </View>
-      <View style={styles.commentsHeaderContainer}>
-        <Text style={styles.commentsText}>댓글 141</Text>
-        <View style={styles.commentInputContainer}>
-          <Image
-            style={styles.profileImage}
-            source={{
-              uri: 'https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png'
-            }}
-          />
-          <Text style={styles.timeInput}>2:12</Text>
-          <TextInput 
-            style={styles.textInput}
-            placeholder='키워드 검색...'
-          />
-        </View>
-      </View>
-    </>
-  )
-}
-
-const CommentItem = ({data}) => {
-  return (
-    <View>
-      <Text>{data.comment}</Text>
-    </View>
-  )
-}
+const appHeight = Dimensions.get('window').height;
 
 const App = () => {
+  const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
+  const inputRef = useRef();
+
+  const handlePressOpen =() => {
+    Animated.timing(viewerY,{
+      toValue:0,
+      duration: 500,
+    }).start();
+    inputRef.current.focus();
+  }
+
+  const handlePressClose = () => {
+    Animated.timing(viewerY,{
+      toValue: appHeight-200,
+      duration: 500,
+    }).start();
+    inputRef.current.blur();
+  }
+
+  const animatedStyle = () => {
+    return {
+      width: '100%',
+      height: 300,
+      position: 'absolute',
+      backgroundColor: 'red',
+      top: viewerY,
+    }
+  }
+
   return (
     <>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.appContainer}>
         <View style={styles.playerContatiner}>
-
         </View>
-        <FlatList 
-          style={styles.systemList}
-          ListHeaderComponent={ListHeader}
-          data={commentDummy}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => <CommentItem data={item}/>}
-        />
+        <View style={styles.systemListContainer}>
+          <FlatList 
+            style={styles.systemList}
+            ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen}/>}
+            data={commentDummy}
+            keyExtractor={item => item.id.toString()}
+            renderItem={({item}) => <CommentItem data={item}/>}
+          />
+          <Animated.View style={animatedStyle()}>
+            <View style={styles.headerContainer}>
+              <TouchableOpacity>
+                <Text style={styles.timeText}>2:12</Text>
+              </TouchableOpacity>
+              <TextInput
+                style={styles.textInput}
+                placeholder='키워드 검색...'
+                ref={inputRef}
+              />
+              <TouchableOpacity onPress={handlePressClose}>
+                <Text>X</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={styles.mainContainer}>
+              
+            </ScrollView>
+            
+          </Animated.View>
+        </View>
       </SafeAreaView>
     </>
   );
@@ -107,50 +126,34 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     aspectRatio: 16/9,
   },
+  systemListContainer: {
+    flex:1,
+  },
   systemList: {
     backgroundColor: 'grey',
     flex: 1,
   },
-  infoContainer: {
-    backgroundColor: 'red',
-    aspectRatio: 4,
-    padding: 15,
-  },
-  videoTitle: {
-    fontSize: 18,
-    marginBottom: 10,
-  },
-  videoUploaderName: {
-    fontSize: 20,
-  },
-  commentsHeaderContainer: {
-    padding: 15,
+  headerContainer: {
     backgroundColor: 'white',
-    height: 100,
+    height: 50,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  commentsText: {
-    fontSize: 20,
-    marginBottom: 10,
+  mainContainer: {
+
   },
-  commentInputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profileImage:{
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-    marginRight: 15,
-  },
-  timeInput: {
+  timeText: {
     fontSize: 15,
     color: '#1366D4',
-    marginRight: 5,
+    flex: 1,
+    marginRight: 5
   },
   textInput: {
     fontSize: 15,
     color: '#606060',
-  }
+    flex: 10,
+  },
 });
 
 export default App;
