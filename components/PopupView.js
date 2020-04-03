@@ -11,6 +11,7 @@ import {
   TextInput,
 } from 'react-native';
 import WebView from 'react-native-webview';
+import ViewShot from "react-native-view-shot";
 
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
@@ -20,6 +21,7 @@ const PopupView = ({opened, setOpened}) => {
   const [keyword, setKeyword] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const inputRef = useRef();
+  const viewShotRef = useRef();
 
   const animatedStyle = () => {
     return {
@@ -52,6 +54,12 @@ const PopupView = ({opened, setOpened}) => {
     inputRef.current.blur();
     setOpened(false);
   }
+  
+  const handlePressCapture = () => {
+    viewShotRef.current.capture().then(uri => {
+      console.log(uri);
+    })
+  }
 
   const handleSubmit = () => {
     setIsSubmitted(true);
@@ -73,6 +81,9 @@ const PopupView = ({opened, setOpened}) => {
           value={keyword}
           onSubmitEditing={handleSubmit}
         />
+        <TouchableOpacity onPress={handlePressCapture}>
+          <Text>캡처</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handlePressClose}>
           <Text>X</Text>
         </TouchableOpacity>
@@ -80,10 +91,13 @@ const PopupView = ({opened, setOpened}) => {
       <ScrollView style={styles.mainContainer}>
         {
           isSubmitted &&
-          <WebView
-            style={styles.webView}
-            source={{ uri: `https://www.google.com/search?q=${keyword}`}}
-          />
+          <ViewShot ref={viewShotRef}>
+            <WebView options={{ format: "jpg", quality: 0.9 }}
+              style={styles.webView}
+              source={{ uri: `https://www.google.com/search?q=${keyword}`}}
+            />
+          </ViewShot>
+          
         }
       </ScrollView>
     </Animated.View>
