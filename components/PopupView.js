@@ -9,6 +9,7 @@ import {
   ScrollView,
   Animated,
   TextInput,
+  Image,
 } from 'react-native';
 import WebView from 'react-native-webview';
 import ViewShot from "react-native-view-shot";
@@ -19,7 +20,9 @@ const appWidth = Dimensions.get('window').width;
 const PopupView = ({opened, setOpened}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [keyword, setKeyword] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [mode, setMode] = useState('hide');
+  const [tool, setTool] = useState('no');
+  const [imageUri, setImageUri] = useState('');
   const inputRef = useRef();
   const viewShotRef = useRef();
 
@@ -53,16 +56,19 @@ const PopupView = ({opened, setOpened}) => {
     }).start();
     inputRef.current.blur();
     setOpened(false);
+    setMode('hide');
   }
   
   const handlePressCapture = () => {
     viewShotRef.current.capture().then(uri => {
       console.log(uri);
+      setMode('captured');
+      setImageUri(uri);
     })
   }
 
   const handleSubmit = () => {
-    setIsSubmitted(true);
+    setMode('webview');
   }
 
   return (
@@ -81,25 +87,59 @@ const PopupView = ({opened, setOpened}) => {
           value={keyword}
           onSubmitEditing={handleSubmit}
         />
-        <TouchableOpacity onPress={handlePressCapture}>
-          <Text>캡처</Text>
-        </TouchableOpacity>
+        {
+          mode=='hide' ? 
+          <TouchableOpacity onPress={handleSubmit}>
+            <Text>검색</Text>
+          </TouchableOpacity>
+          : mode =='webview' ?
+          <TouchableOpacity onPress={handlePressCapture}>
+            <Text>캡처</Text>
+          </TouchableOpacity>
+          : mode == 'captured' ?
+          <TouchableOpacity onPress={handleSubmit}>
+            <Text>취소</Text>
+          </TouchableOpacity> 
+          : 
+          <Text></Text>
+        }
         <TouchableOpacity onPress={handlePressClose}>
           <Text>X</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.mainContainer}>
         {
-          isSubmitted &&
+          mode == 'hide' ?
+          <View>
+            <Text>hide</Text>
+          </View>
+          :
+          mode == 'webview' ?
           <ViewShot ref={viewShotRef}>
             <WebView options={{ format: "jpg", quality: 0.9 }}
               style={styles.webView}
               source={{ uri: `https://www.google.com/search?q=${keyword}`}}
             />
           </ViewShot>
-          
+          :
+          mode == 'captured' ?
+          <View>
+            <Image source={{uri: imageUri}}
+              style={styles.capturedImage}
+            />
+          </View>
+          :
+          <Text>Error!</Text>
         }
       </ScrollView>
+      {
+        mode=='captured' &&
+        <View style={styles.highlightToolsView}>
+          <TouchableOpacity>
+            <Text>펜</Text>
+          </TouchableOpacity>
+        </View>
+      }
     </Animated.View>
   )
 }
@@ -129,6 +169,17 @@ const styles = StyleSheet.create({
   webView: {
     width: appWidth,
     height: 600,
+  },
+  capturedImage: {
+    width: appWidth,
+    height:600,
+  },
+  highlightToolsView: {
+    position: 'absolute',
+    bottom: 0,
+    width: appWidth,
+    height: 50,
+    backgroundColor: '#F5F6FA'
   }
 });
 
