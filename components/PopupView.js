@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import WebView from 'react-native-webview';
 import ViewShot from "react-native-view-shot";
+import { SketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
@@ -31,7 +32,7 @@ const PopupView = ({opened, setOpened}) => {
       width: '100%',
       height: 600,
       position: 'absolute',
-      backgroundColor: 'red',
+      backgroundColor: 'white',
       top: viewerY,
     }
   }
@@ -123,21 +124,32 @@ const PopupView = ({opened, setOpened}) => {
           </ViewShot>
           :
           mode == 'captured' ?
-          <View>
-            <Image source={{uri: imageUri}}
-              style={styles.capturedImage}
-            />
-          </View>
+          <View></View>
           :
           <Text>Error!</Text>
         }
       </ScrollView>
       {
         mode=='captured' &&
-        <View style={styles.highlightToolsView}>
-          <TouchableOpacity>
-            <Text>펜</Text>
-          </TouchableOpacity>
+        <View>
+          <View style={styles.imageView}>
+            <View style={{ flex: 1, flexDirection: 'row' }}>
+              <SketchCanvas
+                style={{ flex: 1 }}
+                strokeColor={'red'}
+                strokeWidth={7}
+                localSourceImage={{
+                  filename: imageUri,
+                  mode: 'AspectFill',
+                }}
+              />
+            </View>
+          </View>
+          <View style={styles.highlightToolsView}>
+            <TouchableOpacity>
+              <Text>펜</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       }
     </Animated.View>
@@ -176,11 +188,18 @@ const styles = StyleSheet.create({
   },
   highlightToolsView: {
     position: 'absolute',
-    bottom: 0,
+    bottom: -50,
     width: appWidth,
-    height: 50,
+    height: 100,
     backgroundColor: '#F5F6FA'
-  }
+  },
+  imageView: {
+    position: 'absolute',
+    bottom: -50,
+    width: appWidth,
+    height: 600,
+    backgroundColor: 'blue',
+  },
 });
 
 export default PopupView;
