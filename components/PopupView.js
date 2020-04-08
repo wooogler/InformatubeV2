@@ -10,10 +10,12 @@ import {
   Animated,
   TextInput,
   Image,
+  KeyboardAvoidingView,
 } from 'react-native';
 import WebView from 'react-native-webview';
 import ViewShot from "react-native-view-shot";
 import { SketchCanvas } from '@terrylinla/react-native-sketch-canvas';
+import Modal from 'react-native-modal';
 
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
@@ -26,8 +28,10 @@ const PopupView = ({opened, setOpened}) => {
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [tool, setTool] = useState('pen');
   const [imageUri, setImageUri] = useState('');
+  const [comment, setComment] = useState('');
   const canvasRef = useRef();
   const inputRef = useRef();
+  const commentRef = useRef();
   const viewShotRef = useRef();
 
   const animatedStyle = () => {
@@ -92,9 +96,30 @@ const PopupView = ({opened, setOpened}) => {
   const handlePressUndo = () => {
     canvasRef.current.undo();
   }
+  
+  const handlePressSave =() => {
+    setMode('save');
+    setTimeout(() => {
+      commentRef.current?.focus();
+    },10)
+  }
 
   const handleSubmit = () => {
     setMode('webview');
+  }
+
+  const handleSubmitComment =() => {
+    Animated.timing(viewerY,{
+      toValue: appHeight-200,
+      duration: 500,
+    }).start();
+    commentRef.current?.blur();
+    setOpened(false);
+    setMode('hide');
+  }
+
+  const handlePressBackdrop = () => {
+    setMode('captured');
   }
 
   return (
@@ -140,19 +165,16 @@ const PopupView = ({opened, setOpened}) => {
             <Text>hide</Text>
           </View>
           :
-          mode == 'webview' || mode == 'captured' ?
           <ViewShot ref={viewShotRef}>
             <WebView options={{ format: "jpg", quality: 0.9 }}
               style={styles.webView}
               source={{ uri: `https://www.google.com/search?q=${keyword}`}}
             />
           </ViewShot>
-          :
-          <Text>Error!</Text>
         }
       </ScrollView>
       {
-        mode=='captured' &&
+        (mode=='captured' || mode=='save') &&
         <View>
           <View style={styles.imageView}>
             <View style={{ flex: 1, flexDirection: 'row' }}>
@@ -181,9 +203,36 @@ const PopupView = ({opened, setOpened}) => {
             <TouchableOpacity onPress={handlePressUndo}>
               <Text>되돌리기</Text>
             </TouchableOpacity>
+            <TouchableOpacity onPress={handlePressSave}>
+              <Text>저장</Text>
+            </TouchableOpacity>
           </View>
         </View>
       }
+      <Modal 
+        isVisible={mode=='save'}
+        avoidKeyboard={true}
+        onBackdropPress={handlePressBackdrop}
+        style={{margin: 0}}
+      >
+        <View style={styles.commentInputView}>
+          <TouchableOpacity>
+            <Text style={styles.timeText}>2:12</Text>
+          </TouchableOpacity>
+          <TextInput
+            onChangeText={(text) => {
+              setComment(text);
+            }}
+            value={comment}
+            ref={commentRef}
+            style={styles.textInput}
+            onSubmitEditing={handleSubmitComment}
+          />
+          <TouchableOpacity onPress={handleSubmitComment}>
+            <Text>제출</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </Animated.View>
   )
 }
@@ -223,15 +272,30 @@ const styles = StyleSheet.create({
     bottom: -50,
     width: appWidth,
     height: 100,
-    backgroundColor: '#F5F6FA'
+    backgroundColor: '#F5F6FA',
+    display: 'flex',
+    flexDirection: "row",
+    justifyContent: 'space-around',
+    paddingTop: 20
   },
   imageView: {
     position: 'absolute',
     bottom: -50,
     width: appWidth,
     height: 600,
-    backgroundColor: 'blue',
+    backgroundColor: 'black',
   },
+  commentInputView: {
+    width: appWidth,
+    backgroundColor: 'white',
+    height: 50,
+    padding: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    margin : 0,
+    position: 'absolute',
+    bottom: 0,
+  }
 });
 
 export default PopupView;
