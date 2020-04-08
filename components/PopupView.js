@@ -22,8 +22,11 @@ const PopupView = ({opened, setOpened}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [keyword, setKeyword] = useState('');
   const [mode, setMode] = useState('hide');
-  const [tool, setTool] = useState('no');
+  const [strokeColor, setStrokeColor] = useState('red');
+  const [strokeWidth, setStrokeWidth] = useState(2);
+  const [tool, setTool] = useState('pen');
   const [imageUri, setImageUri] = useState('');
+  const canvasRef = useRef();
   const inputRef = useRef();
   const viewShotRef = useRef();
 
@@ -66,6 +69,28 @@ const PopupView = ({opened, setOpened}) => {
       setMode('captured');
       setImageUri(uri);
     })
+  }
+
+  const handlePressPen =() => {
+    setStrokeColor('red');
+    setStrokeWidth(2)
+    setTool('pen');
+  }
+
+  const handlePressHighlighter =() => {
+    setStrokeColor('#FFFF3399');
+    setStrokeWidth(10)
+    setTool('highlighter');
+  }
+
+  const handlePressEraser =() => {
+    setStrokeColor('#00000000');
+    setStrokeWidth(10);
+    setTool('eraser');
+  }
+
+  const handlePressUndo = () => {
+    canvasRef.current.undo();
   }
 
   const handleSubmit = () => {
@@ -115,16 +140,13 @@ const PopupView = ({opened, setOpened}) => {
             <Text>hide</Text>
           </View>
           :
-          mode == 'webview' ?
+          mode == 'webview' || mode == 'captured' ?
           <ViewShot ref={viewShotRef}>
             <WebView options={{ format: "jpg", quality: 0.9 }}
               style={styles.webView}
               source={{ uri: `https://www.google.com/search?q=${keyword}`}}
             />
           </ViewShot>
-          :
-          mode == 'captured' ?
-          <View></View>
           :
           <Text>Error!</Text>
         }
@@ -136,18 +158,28 @@ const PopupView = ({opened, setOpened}) => {
             <View style={{ flex: 1, flexDirection: 'row' }}>
               <SketchCanvas
                 style={{ flex: 1 }}
-                strokeColor={'red'}
-                strokeWidth={7}
+                strokeColor={strokeColor}
+                strokeWidth={strokeWidth}
                 localSourceImage={{
                   filename: imageUri,
                   mode: 'AspectFill',
                 }}
+                ref={canvasRef}
               />
             </View>
           </View>
           <View style={styles.highlightToolsView}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handlePressPen}>
               <Text>펜</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handlePressHighlighter}>
+              <Text>형광펜</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handlePressEraser}>
+              <Text>지우개</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handlePressUndo}>
+              <Text>되돌리기</Text>
             </TouchableOpacity>
           </View>
         </View>
