@@ -55,8 +55,27 @@ const App = () => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [videoId, setVideoId] = useState("AVAc1gYLZK0");
   const [opened, setOpened] = useState(false);
-  const [time, setTime] = useState("2:02");
+  const [time, setTime] = useState('0:00');
   const playerRef = useRef();
+
+  useEffect(() => {
+    const interval = setInterval(async() => {
+      const raw_sec = await playerRef.current.getCurrentTime();
+
+      const raw_ms = Math.floor(raw_sec * 1000);
+      const min = Math.floor(raw_ms / 60000);
+      const seconds = Math.floor((raw_ms-min*60000)/1000);
+
+      setTime(
+        min.toString() +
+        ':' +
+        seconds.toString().padStart(2,'0')
+      );
+    }, 100);
+    return () => {
+      clearInterval(interval);
+    }
+  }, []);
 
   const handlePressOpen = () => {
     setOpened(true);
@@ -77,12 +96,12 @@ const App = () => {
         <View style={styles.systemListContainer}>
           <FlatList 
             style={styles.systemList}
-            ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time}/>}
+            ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time} playerRef={playerRef}/>}
             data={commentDummy}
             keyExtractor={item => item.id.toString()}
             renderItem={({item}) => <CommentItem data={item}/>}
           />
-          <PopupView opened={opened} setOpened={setOpened}/>
+          <PopupView opened={opened} setOpened={setOpened} time={time} playerRef={playerRef}/>
         </View>
       </SafeAreaView>
     </>

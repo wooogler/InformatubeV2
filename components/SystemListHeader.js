@@ -7,8 +7,9 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
+import TimePicker from './TimePicker';
 
-const SystemListHeader = ({handlePressOpen, time}) => {
+const SystemListHeader = ({handlePressOpen, time, playerRef}) => {
   return (
     <>
       <View style={styles.infoContainer}>
@@ -28,9 +29,10 @@ const SystemListHeader = ({handlePressOpen, time}) => {
               uri: 'https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png'
             }}
           />
-          <TouchableOpacity>
-            <Text style={styles.timeText}>{time}</Text>
-          </TouchableOpacity>
+          <TimePicker
+            time={time}
+            playerRef={playerRef}
+          />
           <TouchableOpacity
             onPress={handlePressOpen}
           >

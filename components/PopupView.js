@@ -11,17 +11,20 @@ import {
   TextInput,
   Image,
   KeyboardAvoidingView,
+  Picker,
 } from 'react-native';
 import WebView from 'react-native-webview';
 import ViewShot from "react-native-view-shot";
 import { SketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 import Modal from 'react-native-modal';
+import TimePicker from './TimePicker';
 
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
 
-const PopupView = ({opened, setOpened}) => {
+const PopupView = ({opened, setOpened, time, playerRef}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
+  const [isTimePicker, setIsTimePicker] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [mode, setMode] = useState('hide');
   const [strokeColor, setStrokeColor] = useState('red');
@@ -125,9 +128,10 @@ const PopupView = ({opened, setOpened}) => {
   return (
     <Animated.View style={animatedStyle()}>
       <View style={styles.headerContainer}>
-        <TouchableOpacity>
-          <Text style={styles.timeText}>2:12</Text>
-        </TouchableOpacity>
+        <TimePicker
+          time={time}
+          playerRef={playerRef}
+        />
         <TextInput
           style={styles.textInput}
           placeholder='키워드 검색...'
@@ -216,9 +220,10 @@ const PopupView = ({opened, setOpened}) => {
         style={{margin: 0}}
       >
         <View style={styles.commentInputView}>
-          <TouchableOpacity>
-            <Text style={styles.timeText}>2:12</Text>
-          </TouchableOpacity>
+          <TimePicker
+            time={time}
+            playerRef={playerRef}
+          />
           <TextInput
             onChangeText={(text) => {
               setComment(text);
@@ -247,12 +252,6 @@ const styles = StyleSheet.create({
   },
   mainContainer: {
 
-  },
-  timeText: {
-    fontSize: 15,
-    color: '#1366D4',
-    flex: 1,
-    marginRight: 5
   },
   textInput: {
     fontSize: 15,
@@ -295,7 +294,7 @@ const styles = StyleSheet.create({
     margin : 0,
     position: 'absolute',
     bottom: 0,
-  }
+  },
 });
 
 export default PopupView;
