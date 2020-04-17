@@ -1,62 +1,100 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   View,
   Text,
   Image,
+  TouchableOpacity,
 } from 'react-native';
+import Icon from 'react-native-vector-icons/Ionicons';
 
-const CommentItem = ({data}) => {
-    return (
-      <View style={styles.commentItemContainer}>
-        <View style={styles.commentImageContainer}>
-          <Image
-            style={styles.profileImage}
-            source={{
-              uri: data.userImage
-            }}
-          />
-        </View>
-        <View style={styles.commentTextContainer}>
-          <Text>
-            <Text>{data.userName} · </Text>
-            <Text>{data.uploadTime}</Text>
-          </Text>
-          <Text>
-            <Text style={styles.timeText}>{data.time} </Text>
-            <Text>{data.comment}</Text>
-          </Text>
-        </View>
-      </View>
-    )
+Icon.loadFont();
+
+const CommentItem = ({data, playerRef}) => {
+
+  const minsec = data.time.split(':');
+  const [min, setMin] = useState(parseInt(minsec[0]));
+  const [sec, setSec] = useState(parseInt(minsec[1]));
+
+  const handlePressTime = () => {
+    playerRef.current.seekTo(min*60+sec);
   }
 
-  const styles = StyleSheet.create({
-    profileImage:{
-      height: 40,
-      width: 40,
-      borderRadius: 20,
-      marginRight: 15,
-    },
-    timeText: {
-      fontSize: 15,
-      color: '#1366D4',
-      marginRight: 5,
-    },
-    commentItemContainer: {
-      backgroundColor: 'white',
-      padding: 15,
-      borderTopColor: '#DBDBDB',
-      borderTopWidth: 1,
-      flexDirection: 'row',
-    },
-    commentImageContainer: {
-      // backgroundColor: 'red',
-    },
-    commentTextContainer: {
-      // backgroundColor: '#606060', 
-      flex: 1,
-    }
-  });
+  return (
+    <View style={styles.commentItemContainer}>
+      <View style={styles.commentImageContainer}>
+        <Image
+          style={styles.profileImage}
+          source={{
+            uri: data.userImage
+          }}
+        />
+      </View>
+      <View style={styles.commentTextContainer}>
+        <Text>
+          <Text>{data.userName} · </Text>
+          <Text>{data.uploadTime}</Text>
+        </Text>
+        <Text>
+          <Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
+          <Text>{data.comment}</Text>
+        </Text>
+        <View style={styles.commentInteractionContainer}>
+          <TouchableOpacity style={styles.commentLikeButton}>
+            <Icon name='ios-thumbs-up' color="#909090" size={16}></Icon>
+          </TouchableOpacity>
+          <Text>{data.like}</Text>
+          <TouchableOpacity style={styles.commentDislikeButton}>
+            <Icon name='ios-thumbs-down' color="#909090" size={16}></Icon>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.commentWebpageButton}>
+            <Icon name='ios-browsers' color="#909090" size={16}></Icon>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </View>
+  )
+}
 
-  export default CommentItem;
+const styles = StyleSheet.create({
+  profileImage:{
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    marginRight: 15,
+  },
+  timeText: {
+    fontSize: 15,
+    color: '#1366D4',
+    marginRight: 5,
+  },
+  commentItemContainer: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderTopColor: '#DBDBDB',
+    borderTopWidth: 1,
+    flexDirection: 'row',
+  },
+  commentImageContainer: {
+    // backgroundColor: 'red',
+  },
+  commentTextContainer: {
+    // backgroundColor: '#606060', 
+    flex: 1,
+  },
+  commentInteractionContainer: {
+    marginTop: 10,
+    flexDirection: 'row',
+  },
+  commentLikeButton: {
+    marginRight: 10,
+  },
+  commentDislikeButton: {
+    marginLeft: 20,
+  },
+  commentWebpageButton: {
+    marginLeft: 30,
+  }
+});
+
+export default CommentItem;

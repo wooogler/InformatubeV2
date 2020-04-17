@@ -22,7 +22,7 @@ import TimePicker from './TimePicker';
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
 
-const PopupView = ({opened, setOpened, time, playerRef}) => {
+const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [isTimePicker, setIsTimePicker] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -297,4 +297,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PopupView;
+export default AddCommentView;

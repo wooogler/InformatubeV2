@@ -11,21 +11,17 @@ import {
   SafeAreaView,
   StyleSheet,
   View,
-  Text,
   StatusBar,
-  ScrollView,
-  Image,
   FlatList,
-  TextInput,
   Animated,
-  Alert,
   Dimensions,
-  TouchableOpacity,
 } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
 import CommentItem from './components/CommentItem';
 import SystemListHeader from './components/SystemListHeader';
-import PopupView from './components/PopupView';
+import AddCommentView from './components/AddCommentView';
+
+console.disableYellowBox = true;
 
 const commentDummy = [
   {
@@ -99,9 +95,9 @@ const App = () => {
             ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time} playerRef={playerRef}/>}
             data={commentDummy}
             keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => <CommentItem data={item}/>}
+            renderItem={({item}) => <CommentItem data={item} playerRef={playerRef}/>}
           />
-          <PopupView opened={opened} setOpened={setOpened} time={time} playerRef={playerRef}/>
+          <AddCommentView opened={opened} setOpened={setOpened} time={time} playerRef={playerRef}/>
         </View>
       </SafeAreaView>
     </>
