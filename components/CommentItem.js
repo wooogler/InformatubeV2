@@ -10,7 +10,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 
 Icon.loadFont();
 
-const CommentItem = ({data, playerRef}) => {
+const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView}) => {
 
   const minsec = data.time.split(':');
   const [min, setMin] = useState(parseInt(minsec[0]));
@@ -18,6 +18,11 @@ const CommentItem = ({data, playerRef}) => {
 
   const handlePressTime = () => {
     playerRef.current.seekTo(min*60+sec);
+  }
+  
+  const handlePressBrowser = () => {
+    setCommentData(data);
+    setOpenedShowView(true);
   }
 
   return (
@@ -47,7 +52,7 @@ const CommentItem = ({data, playerRef}) => {
           <TouchableOpacity style={styles.commentDislikeButton}>
             <Icon name='ios-thumbs-down' color="#909090" size={16}></Icon>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.commentWebpageButton}>
+          <TouchableOpacity onPress={handlePressBrowser} style={styles.commentWebpageButton}>
             <Icon name='ios-browsers' color="#909090" size={16}></Icon>
           </TouchableOpacity>
         </View>

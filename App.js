@@ -20,6 +20,7 @@ import YoutubePlayer from 'react-native-youtube-iframe';
 import CommentItem from './components/CommentItem';
 import SystemListHeader from './components/SystemListHeader';
 import AddCommentView from './components/AddCommentView';
+import ShowCommentView from './components/ShowCommentView';
 
 console.disableYellowBox = true;
 
@@ -30,7 +31,8 @@ const commentDummy = [
     userImage: 'http://www.meconomynews.com/news/photo/201911/35379_37255_3949.png',
     uploadTime: '21시간 전',
     time: '2:33',
-    comment: '데톨은 옥시에서 만든겁니다... 가습기 살균제 사건 잊으셨나요?',
+    comment: '데톨은 옥시에서 만든겁니다... 가습기 살균제..',
+    url: 'https://namu.wiki/w/%EA%B0%80%EC%8A%B5%EA%B8%B0%20%EC%82%B4%EA%B7%A0%EC%A0%9C%20%EC%82%AC%EB%A7%9D%EC%82%AC%EA%B1%B4',
     like: 105,
   },
   {
@@ -40,6 +42,7 @@ const commentDummy = [
     uploadTime: '21시간 전',
     time: '1:30',
     comment: '코로나.. 이시국 최대의 피해자...',
+    url: 'http://ncov.mohw.go.kr/',
     like: 33,
   },
 ]
@@ -50,7 +53,9 @@ const appWidth = Dimensions.get('window').width;
 const App = () => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [videoId, setVideoId] = useState("AVAc1gYLZK0");
-  const [opened, setOpened] = useState(false);
+  const [openedAddView, setOpenedAddView] = useState(false);
+  const [openedShowView, setOpenedShowView] = useState(false);
+  const [commentData, setCommentData] = useState(null);
   const [time, setTime] = useState('0:00');
   const playerRef = useRef();
 
@@ -74,7 +79,7 @@ const App = () => {
   }, []);
 
   const handlePressOpen = () => {
-    setOpened(true);
+    setOpenedAddView(true);
   }
 
   return (
@@ -95,9 +100,10 @@ const App = () => {
             ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time} playerRef={playerRef}/>}
             data={commentDummy}
             keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => <CommentItem data={item} playerRef={playerRef}/>}
+            renderItem={({item}) => <CommentItem data={item} playerRef={playerRef} setCommentData={setCommentData} setOpenedShowView={setOpenedShowView}/>}
           />
-          <AddCommentView opened={opened} setOpened={setOpened} time={time} playerRef={playerRef}/>
+          <AddCommentView opened={openedAddView} setOpened={setOpenedAddView} time={time} playerRef={playerRef}/>
+          <ShowCommentView opened={openedShowView} setOpened={setOpenedShowView} data={commentData} playerRef={playerRef}/>
         </View>
       </SafeAreaView>
     </>
