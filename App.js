@@ -7,6 +7,9 @@
  */
 
 import React, {useState, useRef, useEffect} from 'react';
+import 'react-native-gesture-handler'
+import { NavigationContainer } from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import {
   SafeAreaView,
   StyleSheet,
@@ -49,8 +52,11 @@ const commentDummy = [
 
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
+const Stack = createStackNavigator();
 
 const App = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [userToken, setUserToken] = useState(null);
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [videoId, setVideoId] = useState("AVAc1gYLZK0");
   const [openedAddView, setOpenedAddView] = useState(false);
@@ -82,8 +88,12 @@ const App = () => {
     setOpenedAddView(true);
   }
 
+  if (isLoading) {
+    return <Text>loading...</Text>
+  }
+
   return (
-    <>
+    <NavigationContainer>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.appContainer}>
         <View style={styles.playerContatiner}>
@@ -106,7 +116,7 @@ const App = () => {
           <ShowCommentView opened={openedShowView} setOpened={setOpenedShowView} data={commentData} playerRef={playerRef}/>
         </View>
       </SafeAreaView>
-    </>
+    </NavigationContainer>
   );
 };
 

@@ -75,6 +75,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
       console.log(uri);
       setMode('captured');
       setImageUri(uri);
+      console.log(uri);
     })
   }
 

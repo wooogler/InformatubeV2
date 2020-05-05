@@ -82,10 +82,6 @@ const ShowCommentView = ({opened, setOpened, data, playerRef}) => {
             </TouchableOpacity>
           </View>
           <View style={styles.mainContainer}>
-            <Image 
-              source={{uri: ''}}
-              style={{flex:1}}
-            />
           </View>
         </>
       }
