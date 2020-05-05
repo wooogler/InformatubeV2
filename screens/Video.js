@@ -6,7 +6,7 @@ import {
   Dimensions,
 } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
-import SystemListHeader from '../components/ShowListHeader';
+import SystemListHeader from '../components/SystemListHeader';
 import CommentItem from '../components/CommentItem';
 import AddCommentView from '../components/AddCommentView';
 import ShowCommentView from '../components/ShowCommentView';
