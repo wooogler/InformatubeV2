@@ -1,4 +1,4 @@
-import React, {useState, useContext} from 'react';
+import React, {useState, createContext, useContext} from 'react';
 import {
   View,
   TextInput,
@@ -9,7 +9,7 @@ import {AuthContext} from '../App';
 const SignIn = () => {
 
   const [username, setUsername] = useState('');
-  const {signIn} = useContext(AuthContext)
+  const { signIn } = useContext(AuthContext);
   return (
     <View>
       <TextInput 

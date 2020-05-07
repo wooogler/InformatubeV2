@@ -2,6 +2,9 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../InformatubeV2-backend"
 		}
 	],
 	"settings": {

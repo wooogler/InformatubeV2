@@ -14,6 +14,7 @@ import {
   SafeAreaView,
   StyleSheet,
   StatusBar,
+  Text,
 } from 'react-native';
 import Video from './screens/Video';
 import SignIn from './screens/SignIn';
@@ -22,7 +23,7 @@ import AsyncStorage from '@react-native-community/async-storage';
 
 console.disableYellowBox = true;
 
-const AuthContext = createContext();
+export const AuthContext = createContext();
 const Stack = createStackNavigator();
 
 const App = () => {
@@ -56,6 +57,7 @@ const App = () => {
       userToken: null,
     }
   )
+
   useEffect(() => {
     const bootstrapAsync = async () => {
       let userToken;
@@ -69,11 +71,10 @@ const App = () => {
 
       dispatch({type: 'RESTORE_TOKEN', token: userToken});
     }
-
     bootstrapAsync();
   }, [])
 
-  export const authContext = useMemo(
+  const authContext = useMemo(
     () => ({
       signIn: async data => {
         //데이터(username)를 보내고 서버에서 토큰 받기
@@ -92,7 +93,7 @@ const App = () => {
     []
   )
 
-  if (isLoading) {
+  if (state.isLoading) {
     return <Text>loading...</Text>
   }
 
