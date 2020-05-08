@@ -15,18 +15,52 @@ import {
   StyleSheet,
   StatusBar,
   Text,
+  Button,
 } from 'react-native';
+import gql from 'graphql-tag';
+import AsyncStorage from '@react-native-community/async-storage';
+import ApolloClient from 'apollo-boost';
+import {ApolloProvider, useMutation} from '@apollo/react-hooks';
 import Video from './screens/Video';
 import SignIn from './screens/SignIn';
 import Splash from './screens/Splash';
-import AsyncStorage from '@react-native-community/async-storage';
+
 
 console.disableYellowBox = true;
 
 export const AuthContext = createContext();
 const Stack = createStackNavigator();
 
+const client = new ApolloClient({
+  uri: 'http://localhost:4000',
+  request: async (operation) => {
+    try {
+      userToken = await AsyncStorage.getItem('userToken');
+    } catch(e) {
+      console.error('No stored token', e);
+    }
+    operation.setContext({
+      headers: {
+        authorization: userToken ? `Bearer ${userToken}` : ''
+      }
+    })
+  }
+})
+
+const LOG_IN = gql`
+  mutation {
+    login(name: $name) {
+      token
+      user {
+        id
+        name
+      }
+    }
+  }
+`;
+
 const App = () => {
+  const [login] = useMutation(LOG_IN);
 
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -42,12 +76,14 @@ const App = () => {
             ...prevState,
             isSignout: false,
             userToken: action.token,
+            me: action.me,
           };
         case 'SIGN_OUT':
           return {
             ...prevState,
             isSignout: true,
             userToken: null,
+            me: null,
           };
       }
     },
@@ -55,6 +91,7 @@ const App = () => {
       isLoading: true,
       isSignout: false,
       userToken: null,
+      me: null,
     }
   )
 
@@ -64,10 +101,8 @@ const App = () => {
       try {
         userToken = await AsyncStorage.getItem('userToken');
       } catch(e) {
-        console.error(e);
+        console.error('No stored token', e);
       }
-      
-      //여기서 서버와 통신하여 맞는 토큰인지 확인
 
       dispatch({type: 'RESTORE_TOKEN', token: userToken});
     }
@@ -76,19 +111,15 @@ const App = () => {
 
   const authContext = useMemo(
     () => ({
-      signIn: async data => {
-        //데이터(username)를 보내고 서버에서 토큰 받기
-        //sign in 실패에 대한 에러 처리하기
-        //토큰을 받으면 asyncStorage에 저장하기
-        dispatch({type: 'SIGN_IN', token: 'dummy-auth-token'});
+      signIn: async ({name}) => {
+        console.log('signIn');
+        const data = login({variables: {name}})
+        console.log(data);
       },
-      signOut: () => dispatch({type: 'SIGN_OUT'}),
-      signUp: async data => {
-        //마찬가지로 유저 정보 보내고 토큰 받아오기
-        //sign up 실패에 대한 에러 처리하기
-        //토큰 받으면 마찬가지로 asyncstorage에 저장하기
-        dispatch({type: 'SIGN_IN', token: 'dummy-auth-token'})
-      }
+      signOut: async () => {
+        await AsyncStorage.removeItem('userToken');
+        dispatch({type: 'SIGN_OUT'});
+      },
     }),
     []
   )
@@ -98,6 +129,7 @@ const App = () => {
   }
 
   return (
+    <ApolloProvider client={client}>
     <NavigationContainer>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.appContainer}>
@@ -115,12 +147,29 @@ const App = () => {
                   animationTypeForReplace: state.isSignout ? 'pop' : 'push',
                 }}
               /> :
-              <Stack.Screen name='Video' component={Video}/>
+              <Stack.Screen 
+                name='Video' 
+                component={Video}
+                options={({navigation}) => ({
+                  headerRight: () => (
+                    <Button
+                      onPress={
+                        () => {
+                          navigation.navigate('SignIn');
+                          AsyncStorage.removeItem('userToken');
+                        }
+                      }
+                      title="Sign Out"
+                    />
+                  )
+                })}
+              />
             }
           </Stack.Navigator>
         </AuthContext.Provider>
       </SafeAreaView>
     </NavigationContainer>
+    </ApolloProvider>
   );
 };
 

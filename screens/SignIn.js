@@ -1,4 +1,4 @@
-import React, {useState, createContext, useContext} from 'react';
+import React, {useState, useContext} from 'react';
 import {
   View,
   TextInput,
@@ -8,19 +8,19 @@ import {AuthContext} from '../App';
 
 const SignIn = () => {
 
-  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const { signIn } = useContext(AuthContext);
   return (
     <View>
       <TextInput 
         placeholder="유저 이름"
-        value={username}
-        onChangeText={setUsername}
+        value={name}
+        onChangeText={setName}
       />
       <Button 
         title="로그인"
         onPress={() => {
-          signIn({username})
+          signIn({name})
         }}
       />
     </View>
