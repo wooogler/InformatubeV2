@@ -6,7 +6,7 @@
  * @flow strict-local
  */
 
-import React, {createContext, useReducer, useEffect, useMemo} from 'react';
+import React, {createContext, useReducer, useEffect, useMemo, useContext} from 'react';
 import 'react-native-gesture-handler'
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -19,8 +19,7 @@ import {
 } from 'react-native';
 import gql from 'graphql-tag';
 import AsyncStorage from '@react-native-community/async-storage';
-import ApolloClient from 'apollo-boost';
-import {ApolloProvider, useMutation} from '@apollo/react-hooks';
+import {useMutation} from '@apollo/client';
 import Video from './screens/Video';
 import SignIn from './screens/SignIn';
 import Splash from './screens/Splash';
@@ -29,27 +28,12 @@ import Splash from './screens/Splash';
 console.disableYellowBox = true;
 
 export const AuthContext = createContext();
+
 const Stack = createStackNavigator();
 
-const client = new ApolloClient({
-  uri: 'http://localhost:4000',
-  request: async (operation) => {
-    try {
-      userToken = await AsyncStorage.getItem('userToken');
-    } catch(e) {
-      console.error('No stored token', e);
-    }
-    operation.setContext({
-      headers: {
-        authorization: userToken ? `Bearer ${userToken}` : ''
-      }
-    })
-  }
-})
-
 const LOG_IN = gql`
-  mutation {
-    login(name: $name) {
+  mutation LogIn($name: String!) {
+    login (name: $name) {
       token
       user {
         id
@@ -60,7 +44,7 @@ const LOG_IN = gql`
 `;
 
 const App = () => {
-  const [login] = useMutation(LOG_IN);
+  const [login, {data} ] = useMutation(LOG_IN);
 
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -100,21 +84,28 @@ const App = () => {
       let userToken;
       try {
         userToken = await AsyncStorage.getItem('userToken');
+        console.log('usertoken',userToken);
       } catch(e) {
         console.error('No stored token', e);
       }
-
       dispatch({type: 'RESTORE_TOKEN', token: userToken});
     }
     bootstrapAsync();
   }, [])
 
+  useEffect(() => {
+    if(data) {
+      AsyncStorage.setItem('userToken',data.login.token);
+      dispatch({type: 'SIGN_IN', token: data.login.token});
+      console.log(data.login.token);
+    }
+  }, [data])
+
   const authContext = useMemo(
     () => ({
       signIn: async ({name}) => {
         console.log('signIn');
-        const data = login({variables: {name}})
-        console.log(data);
+        login({variables: {name}})
       },
       signOut: async () => {
         await AsyncStorage.removeItem('userToken');
@@ -129,7 +120,6 @@ const App = () => {
   }
 
   return (
-    <ApolloProvider client={client}>
     <NavigationContainer>
       <StatusBar barStyle="dark-content" />
       <SafeAreaView style={styles.appContainer}>
@@ -153,11 +143,9 @@ const App = () => {
                 options={({navigation}) => ({
                   headerRight: () => (
                     <Button
-                      onPress={
-                        () => {
-                          navigation.navigate('SignIn');
-                          AsyncStorage.removeItem('userToken');
-                        }
+                      onPress={() => {
+                        AsyncStorage.removeItem('userToken');
+                        dispatch({type: 'SIGN_OUT'});}
                       }
                       title="Sign Out"
                     />
@@ -169,7 +157,6 @@ const App = () => {
         </AuthContext.Provider>
       </SafeAreaView>
     </NavigationContainer>
-    </ApolloProvider>
   );
 };
 

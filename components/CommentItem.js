@@ -31,24 +31,24 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView}) => {
         <Image
           style={styles.profileImage}
           source={{
-            uri: data.userImage
+            uri: 'http://www.meconomynews.com/news/photo/201911/35379_37255_3949.png'
           }}
         />
       </View>
       <View style={styles.commentTextContainer}>
         <Text>
-          <Text>{data.userName} · </Text>
-          <Text>{data.uploadTime}</Text>
+          <Text>{data.author.name} · </Text>
+          <Text>'1시간 전'</Text>
         </Text>
         <Text>
           <Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
-          <Text>{data.comment}</Text>
+          <Text>{data.text}</Text>
         </Text>
         <View style={styles.commentInteractionContainer}>
           <TouchableOpacity style={styles.commentLikeButton}>
             <Icon name='ios-thumbs-up' color="#909090" size={16}></Icon>
           </TouchableOpacity>
-          <Text>{data.like}</Text>
+          <Text>{data.likeUsers.length}</Text>
           <TouchableOpacity style={styles.commentDislikeButton}>
             <Icon name='ios-thumbs-down' color="#909090" size={16}></Icon>
           </TouchableOpacity>

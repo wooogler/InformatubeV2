@@ -1,15 +1,34 @@
-import React, {useState, useRef, useEffect} from 'react';
+import React, {useState, useRef, useEffect, useReducer} from 'react';
 import {
   View, 
   FlatList,
   StyleSheet,
   Dimensions,
+  Text,
 } from 'react-native';
 import YoutubePlayer from 'react-native-youtube-iframe';
+import {gql, useQuery} from '@apollo/client';
 import SystemListHeader from '../components/SystemListHeader';
 import CommentItem from '../components/CommentItem';
 import AddCommentView from '../components/AddCommentView';
 import ShowCommentView from '../components/ShowCommentView';
+
+const VIEW_ALL_COMMENTS = gql`
+  {
+    comments{
+      id
+      text
+      time
+      createdAt
+      likeUsers {
+        id
+      }
+      author {
+        name
+      }
+    }
+  }
+`;
 
 const commentDummy = [
   {
@@ -42,6 +61,7 @@ const Video = () => {
   const [openedAddView, setOpenedAddView] = useState(false);
   const [openedShowView, setOpenedShowView] = useState(false);
   const [commentData, setCommentData] = useState(null);
+  const [comments, setComments] = useState(null);
   const [time, setTime] = useState('0:00');
   const playerRef = useRef();
 
@@ -64,8 +84,25 @@ const Video = () => {
     }
   }, []);
 
+  const {loading, error, data} = useQuery(VIEW_ALL_COMMENTS);
+
+  useEffect(()=> {
+    if(data) {
+      setComments(data.comments);
+      console.log(data.comments);
+    }
+  },[data]);
+
   const handlePressOpen = () => {
     setOpenedAddView(true);
+  }
+
+  if(loading) {
+    return (<Text>Loading Comments...</Text>);
+  }
+
+  if(error) {
+    return (<Text>Loading Comments Error!</Text>);
   }
 
   return (
@@ -82,8 +119,8 @@ const Video = () => {
       <FlatList 
         style={styles.systemList}
         ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time} playerRef={playerRef}/>}
-        data={commentDummy}
-        keyExtractor={item => item.id.toString()}
+        data={comments}
+        keyExtractor={item => item.id}
         renderItem={({item}) => <CommentItem data={item} playerRef={playerRef} setCommentData={setCommentData} setOpenedShowView={setOpenedShowView}/>}
       />
       <AddCommentView opened={openedAddView} setOpened={setOpenedAddView} time={time} playerRef={playerRef}/>

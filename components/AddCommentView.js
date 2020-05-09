@@ -18,9 +18,18 @@ import ViewShot from "react-native-view-shot";
 import { SketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 import Modal from 'react-native-modal';
 import TimePicker from './TimePicker';
+import { useMutation, gql } from '@apollo/client';
 
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
+
+const CREATE_COMMENT = gql`
+  mutation CreateComment($text: String!, $time: String!, $url: String!) {
+    createComment (text: $text, time: $time, url: $url) {
+      id
+    }
+  }
+`;
 
 const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
@@ -31,11 +40,13 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   const [strokeWidth, setStrokeWidth] = useState(2);
   const [tool, setTool] = useState('pen');
   const [imageUri, setImageUri] = useState('');
-  const [comment, setComment] = useState('');
+  const [text, setText] = useState('');
+  const [url, setUrl] = useState('');
   const canvasRef = useRef();
   const inputRef = useRef();
   const commentRef = useRef();
   const viewShotRef = useRef();
+  const [createComment] = useMutation(CREATE_COMMENT);
 
   const animatedStyle = () => {
     return {
@@ -120,10 +131,19 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
     commentRef.current?.blur();
     setOpened(false);
     setMode('hide');
+    createComment({variables: {
+      text, 
+      time,
+      url,
+    }});
   }
 
   const handlePressBackdrop = () => {
     setMode('captured');
+  }
+
+  const handleNavigationStateChange =(newNavState) => {
+    setUrl(newNavState.url);
   }
 
   return (
@@ -174,6 +194,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
             <WebView options={{ format: "jpg", quality: 0.9 }}
               style={styles.webView}
               source={{ uri: `https://www.google.com/search?q=${keyword}`}}
+              onNavigationStateChange={handleNavigationStateChange}
             />
           </ViewShot>
         }
@@ -227,9 +248,9 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
           />
           <TextInput
             onChangeText={(text) => {
-              setComment(text);
+              setText(text);
             }}
-            value={comment}
+            value={text}
             ref={commentRef}
             style={styles.textInput}
             onSubmitEditing={handleSubmitComment}
@@ -269,7 +290,7 @@ const styles = StyleSheet.create({
   },
   highlightToolsView: {
     position: 'absolute',
-    bottom: -50,
+    bottom: 0,
     width: appWidth,
     height: 100,
     backgroundColor: '#F5F6FA',
