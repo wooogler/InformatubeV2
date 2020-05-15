@@ -18,18 +18,42 @@ import ViewShot from "react-native-view-shot";
 import { SketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 import Modal from 'react-native-modal';
 import TimePicker from './TimePicker';
-import { useMutation, gql } from '@apollo/client';
+import { useApolloClient, useMutation, gql } from '@apollo/client';
+import { ReactNativeFile } from 'apollo-upload-client';
 
 const appHeight = Dimensions.get('window').height;
 const appWidth = Dimensions.get('window').width;
 
 const CREATE_COMMENT = gql`
-  mutation CreateComment($text: String!, $time: String!, $url: String!) {
-    createComment (text: $text, time: $time, url: $url) {
+  mutation CreateComment($text: String!, $time: String!, $url: String!, $image: Upload!) {
+    createComment (text: $text, time: $time, url: $url, image: $image) {
       id
     }
   }
 `;
+
+const apolloClient = useApolloClient();
+
+const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+  const byteCharacters = atob(b64Data);
+  const byteArrays = [];
+
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize);
+
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+
+  const blob = new Blob(byteArrays, {type: contentType});
+  return blob;
+}
+
 
 const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
@@ -113,6 +137,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   }
   
   const handlePressSave =() => {
+    
     setMode('save');
     setTimeout(() => {
       commentRef.current?.focus();
@@ -124,6 +149,18 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   }
 
   const handleSubmitComment =() => {
+    canvasRef.current.getBase64('png',true,true,true,true, (error, result) => {
+      const image = b64toBlob(result, 'image/png');
+      image.name = 'tmp.png';
+      createComment({variables: {
+        text,
+        time,
+        url,
+        image,
+      }}).then(() => {
+        apolloClient.resetStore();
+      });
+    })
     Animated.timing(viewerY,{
       toValue: appHeight-200,
       duration: 500,
@@ -131,11 +168,6 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
     commentRef.current?.blur();
     setOpened(false);
     setMode('hide');
-    createComment({variables: {
-      text, 
-      time,
-      url,
-    }});
   }
 
   const handlePressBackdrop = () => {

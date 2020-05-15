@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import {StyleSheet, View, Picker, TouchableOpacity, Dimensions, Text, Button} from 'react-native';
+import {StyleSheet, View, TouchableOpacity, Dimensions, Text, Button} from 'react-native';
+import {Picker} from '@react-native-community/picker';
 import Modal from 'react-native-modal';
 
 const appWidth = Dimensions.get('window').width;
@@ -41,7 +42,7 @@ const TimePicker = ({time, playerRef}) => {
             style={styles.picker}
           >
             {
-              mins.map(item => <Picker.item value={item} label={String(item)}/>)
+              mins.map(item => <Picker.item key={item} value={item} label={String(item)}/>)
             }
           </Picker>
           <Text>분</Text>
@@ -52,7 +53,7 @@ const TimePicker = ({time, playerRef}) => {
             style={styles.picker}
           >
             {
-              secs.map(item => <Picker.item value={item} label={String(item)}/>)
+              secs.map(item => <Picker.item key={item} value={item} label={String(item)}/>)
             }
           </Picker>
           <Text>초</Text>
