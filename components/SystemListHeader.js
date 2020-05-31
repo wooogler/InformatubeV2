@@ -1,34 +1,54 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
   Text,
-  Image,
-  Alert,
   TouchableOpacity,
 } from 'react-native';
 import TimePicker from './TimePicker';
+import {gql, useQuery} from '@apollo/client';
+const stc = require('string-to-color');
 
-const SystemListHeader = ({handlePressOpen, time, playerRef}) => {
+const ME = gql`
+  {
+    me {
+      id
+      name
+    }
+  }
+`
+
+const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta}) => {
+  const me = useQuery(ME).data?.me;
+
+  const _refetch = useQuery(ME).refetch;
+  const refetch = useCallback(() => { setTimeout(() => {
+    console.log("refetch!")
+    _refetch();
+  }, 0) }, [_refetch]);
+
+  useEffect(() => {
+    refetch();
+  }, [])
+  const nameColor = {
+    backgroundColor: me && stc(me.name),
+  }
   return (
     <>
       <View style={styles.infoContainer}>
         <Text style={styles.videoTitle}>
-          Video Title
+          {meta?.title}
         </Text>
         <Text style={styles.videoUploaderName}>
-          Video Uploader
+          {meta?.author_name}
         </Text>
       </View>
       <View style={styles.commentsHeaderContainer}>
-        <Text style={styles.commentsText}>댓글 141</Text>
+        <Text style={styles.commentsText}>댓글 {commentNumber}개</Text>
         <View style={styles.commentInputContainer}>
-          <Image
-            style={styles.profileImage}
-            source={{
-              uri: 'https://cdn.business2community.com/wp-content/uploads/2017/08/blank-profile-picture-973460_640.png'
-            }}
-          />
+          <View style={[styles.profileIcon, nameColor]}>
+            <Text style={styles.profileText}>{me?.name.charAt(0)}</Text>
+          </View>
           <TimePicker
             time={time}
             playerRef={playerRef}
@@ -49,15 +69,15 @@ const SystemListHeader = ({handlePressOpen, time, playerRef}) => {
 const styles = StyleSheet.create({
   infoContainer: {
     backgroundColor: 'white',
-    aspectRatio: 4,
+    aspectRatio: 5,
     padding: 15,
   },
   videoTitle: {
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 10,
   },
   videoUploaderName: {
-    fontSize: 20,
+    fontSize: 15,
   },
   commentsHeaderContainer: {
     padding: 15,
@@ -74,11 +94,17 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  profileImage:{
+  profileIcon: {
     height: 40,
     width: 40,
     borderRadius: 20,
     marginRight: 15,
+  },
+  profileText: {
+    color: 'white',
+    textAlign: 'center',
+    lineHeight: 40,
+    fontSize: 20,
   },
   timeText: {
     fontSize: 15,

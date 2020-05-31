@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   Linking,
+  Image,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 
@@ -20,6 +21,7 @@ const ShowCommentView = ({opened, setOpened, data, playerRef}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
 
   useEffect(()=> {
+    console.log(data);
     if(data) {
       setMin(parseInt(data.time.split(':')[0]));
       setSec(parseInt(data.time.split(':')[1]));
@@ -72,7 +74,7 @@ const ShowCommentView = ({opened, setOpened, data, playerRef}) => {
           <View style={styles.headerContainer}>
             <Text>
               <Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
-              <Text>{data.comment}</Text>
+              <Text>{data.text}</Text>
             </Text>
             <TouchableOpacity onPress={handlePressSource}>
               <Text>원본</Text>
@@ -82,6 +84,12 @@ const ShowCommentView = ({opened, setOpened, data, playerRef}) => {
             </TouchableOpacity>
           </View>
           <View style={styles.mainContainer}>
+            <Image
+              style={{width: appWidth, height: 600}}
+              source={{
+                uri: `http://localhost:4000/${data.imageUrl}`
+              }}
+            />
           </View>
         </>
       }

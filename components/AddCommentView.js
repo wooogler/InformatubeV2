@@ -18,7 +18,7 @@ import ViewShot from "react-native-view-shot";
 import { SketchCanvas } from '@terrylinla/react-native-sketch-canvas';
 import Modal from 'react-native-modal';
 import TimePicker from './TimePicker';
-import { useApolloClient, useMutation, gql } from '@apollo/client';
+import { useMutation, gql } from '@apollo/client';
 import { ReactNativeFile } from 'apollo-upload-client';
 
 const appHeight = Dimensions.get('window').height;
@@ -32,30 +32,7 @@ const CREATE_COMMENT = gql`
   }
 `;
 
-const apolloClient = useApolloClient();
-
-const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
-  const byteCharacters = atob(b64Data);
-  const byteArrays = [];
-
-  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
-    const slice = byteCharacters.slice(offset, offset + sliceSize);
-
-    const byteNumbers = new Array(slice.length);
-    for (let i = 0; i < slice.length; i++) {
-      byteNumbers[i] = slice.charCodeAt(i);
-    }
-
-    const byteArray = new Uint8Array(byteNumbers);
-    byteArrays.push(byteArray);
-  }
-
-  const blob = new Blob(byteArrays, {type: contentType});
-  return blob;
-}
-
-
-const AddCommentView = ({opened, setOpened, time, playerRef}) => {
+const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [isTimePicker, setIsTimePicker] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -70,6 +47,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   const inputRef = useRef();
   const commentRef = useRef();
   const viewShotRef = useRef();
+  const webViewRef = useRef();
   const [createComment] = useMutation(CREATE_COMMENT);
 
   const animatedStyle = () => {
@@ -88,6 +66,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
         toValue:0,
         duration: 500,
       }).start();
+      setKeyword('');
       inputRef.current.focus();
     }
     else {
@@ -96,6 +75,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   }, [opened])
 
   const handlePressClose = () => {
+    refetch();
     Animated.timing(viewerY,{
       toValue: appHeight-200,
       duration: 500,
@@ -107,10 +87,8 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
   
   const handlePressCapture = () => {
     viewShotRef.current.capture().then(uri => {
-      console.log(uri);
       setMode('captured');
       setImageUri(uri);
-      console.log(uri);
     })
   }
 
@@ -148,19 +126,31 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
     setMode('webview');
   }
 
-  const handleSubmitComment =() => {
-    canvasRef.current.getBase64('png',true,true,true,true, (error, result) => {
-      const image = b64toBlob(result, 'image/png');
-      image.name = 'tmp.png';
-      createComment({variables: {
+  const handleSubmitComment = () => {
+    canvasRef.current.save('png',true,'images','tmp',true,true,true);
+    const imageUriArr = imageUri.split('/');
+    imageUriArr.splice(-2,2);
+    const tmpUriArr = imageUriArr.concat(['images', 'tmp.png']);
+    const tmpUri = tmpUriArr.join('/');
+    const file = new ReactNativeFile({
+      uri: tmpUri,
+      name: 'tmp',
+      type: 'image/png',
+    })
+    console.log(file);
+    let response;
+    try {
+      response = createComment({ variables: {
         text,
         time,
         url,
-        image,
-      }}).then(() => {
-        apolloClient.resetStore();
-      });
-    })
+        image: file,
+      }})
+    } catch (err) {
+      console.log(err);
+    }
+    console.log(response);
+    
     Animated.timing(viewerY,{
       toValue: appHeight-200,
       duration: 500,
@@ -168,6 +158,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
     commentRef.current?.blur();
     setOpened(false);
     setMode('hide');
+    setTimeout(() => refetch(),1000);
   }
 
   const handlePressBackdrop = () => {
@@ -176,6 +167,14 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
 
   const handleNavigationStateChange =(newNavState) => {
     setUrl(newNavState.url);
+  }
+
+  const handleSketchSaved = (success, path) => {
+    console.log('saved!', path);
+  }
+
+  const handleBackward = () => {
+    webViewRef.current.goBack();
   }
 
   return (
@@ -195,6 +194,9 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
           value={keyword}
           onSubmitEditing={handleSubmit}
         />
+        <TouchableOpacity onPress={handleBackward} style={styles.backward}>
+          <Text>뒤로</Text>
+        </TouchableOpacity>
         {
           mode=='hide' ? 
           <TouchableOpacity onPress={handleSubmit}>
@@ -227,6 +229,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
               style={styles.webView}
               source={{ uri: `https://www.google.com/search?q=${keyword}`}}
               onNavigationStateChange={handleNavigationStateChange}
+              ref={webViewRef}
             />
           </ViewShot>
         }
@@ -245,6 +248,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef}) => {
                   mode: 'AspectFill',
                 }}
                 ref={canvasRef}
+                onSketchSaved={handleSketchSaved}
               />
             </View>
           </View>
@@ -349,6 +353,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
   },
+  backward: {
+    marginRight: 20
+  }
 });
 
 export default AddCommentView;

@@ -1,4 +1,4 @@
-import React, {useState, useRef, useEffect, useReducer} from 'react';
+import React, {useState, useRef, useEffect, useCallback} from 'react';
 import {
   View, 
   FlatList,
@@ -6,7 +6,7 @@ import {
   Dimensions,
   Text,
 } from 'react-native';
-import YoutubePlayer from 'react-native-youtube-iframe';
+import YoutubePlayer, {getYoutubeMeta} from 'react-native-youtube-iframe';
 import {gql, useQuery} from '@apollo/client';
 import SystemListHeader from '../components/SystemListHeader';
 import CommentItem from '../components/CommentItem';
@@ -23,45 +23,39 @@ const VIEW_ALL_COMMENTS = gql`
       likeUsers {
         id
       }
+      dislikeUsers {
+        id
+      }
       author {
+        id
         name
       }
+      imageUrl
+      url
     }
   }
 `;
 
-const commentDummy = [
+const VIEW_ALL_USERS = gql`
   {
-    id: 1,
-    userName: 'YANGWOO LEE',
-    userImage: 'http://www.meconomynews.com/news/photo/201911/35379_37255_3949.png',
-    uploadTime: '21시간 전',
-    time: '2:33',
-    comment: '데톨은 옥시에서 만든겁니다... 가습기 살균제..',
-    url: 'https://namu.wiki/w/%EA%B0%80%EC%8A%B5%EA%B8%B0%20%EC%82%B4%EA%B7%A0%EC%A0%9C%20%EC%82%AC%EB%A7%9D%EC%82%AC%EA%B1%B4',
-    like: 105,
-  },
-  {
-    id: 2,
-    userName: 'gentle guy',
-    userImage: 'https://i.insider.com/5ba15375e361c01c008b5cf7?width=2500&format=jpeg&auto=webp',
-    uploadTime: '21시간 전',
-    time: '1:30',
-    comment: '코로나.. 이시국 최대의 피해자...',
-    url: 'http://ncov.mohw.go.kr/',
-    like: 33,
-  },
-]
+    users {
+      id
+    }
+  }
+`;
 
 const appWidth = Dimensions.get('window').width;
 
+
+
 const Video = () => {
 
-  const [videoId, setVideoId] = useState("AVAc1gYLZK0");
+  const [videoId, setVideoId] = useState("BQUz0X4E_9c");
+  const [videoMeta, setVideoMeta] = useState(null);
   const [openedAddView, setOpenedAddView] = useState(false);
   const [openedShowView, setOpenedShowView] = useState(false);
   const [commentData, setCommentData] = useState(null);
-  const [comments, setComments] = useState(null);
+  const [evalStage, setEvalStage] = useState(true);
   const [time, setTime] = useState('0:00');
   const playerRef = useRef();
 
@@ -84,14 +78,51 @@ const Video = () => {
     }
   }, []);
 
-  const {loading, error, data} = useQuery(VIEW_ALL_COMMENTS);
+  
 
-  useEffect(()=> {
+  useEffect(() => {
+    getYoutubeMeta(videoId).then(meta => {
+      setVideoMeta(meta);
+    });
+  }, [])
+
+  const {loading, error, data} = useQuery(VIEW_ALL_COMMENTS);
+  const userData = useQuery(VIEW_ALL_USERS).data;
+  const _refetch = useQuery(VIEW_ALL_COMMENTS).refetch;
+  const refetch = useCallback(() => { setTimeout(() => {
+    console.log("refetch!")
+    _refetch();
+  }, 0) }, [_refetch]);
+
+  useEffect(() => {
     if(data) {
-      setComments(data.comments);
-      console.log(data.comments);
+      const {comments} = data;
+      const {users} = userData;
+      let matrix = [];
+      comments.forEach((comment) => {
+        let row = [];
+        for(let i=0;i<users.length;i++) {
+          if(comment.likeUsers.find(likeUser => likeUser.id === users[i].id)){
+            row.push(1);
+          }
+          else if(comment.dislikeUsers.find(dislikeUser => dislikeUser.id === users[i].id)){
+            row.push(-1);
+          } else {
+            row.push(0);
+          }
+        }
+        matrix.push(row);
+      })
+      console.log(matrix);
     }
-  },[data]);
+    
+  }, [data])
+  
+  useEffect(() => {
+    if(evalStage === true) {
+
+    }
+  }, [evalStage])
 
   const handlePressOpen = () => {
     setOpenedAddView(true);
@@ -102,7 +133,7 @@ const Video = () => {
   }
 
   if(error) {
-    return (<Text>Loading Comments Error!</Text>);
+    return (<Text>Loading Comments Error! {String(error)}</Text>);
   }
 
   return (
@@ -118,12 +149,21 @@ const Video = () => {
     <View style={styles.systemListContainer}>
       <FlatList 
         style={styles.systemList}
-        ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time} playerRef={playerRef}/>}
-        data={comments}
-        keyExtractor={item => item.id}
-        renderItem={({item}) => <CommentItem data={item} playerRef={playerRef} setCommentData={setCommentData} setOpenedShowView={setOpenedShowView}/>}
+        ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time} playerRef={playerRef} commentNumber={data.comments.length} meta={videoMeta}/>}
+        data={data.comments}
+        keyExtractor={item => item?.id}
+        renderItem={({item}) => (
+          <CommentItem 
+            data={item} 
+            layerRef={playerRef} 
+            setCommentData={setCommentData} 
+            setOpenedShowView={setOpenedShowView} 
+            refetch={refetch}
+            evalStage={evalStage}
+          />
+        )}
       />
-      <AddCommentView opened={openedAddView} setOpened={setOpenedAddView} time={time} playerRef={playerRef}/>
+      <AddCommentView opened={openedAddView} setOpened={setOpenedAddView} time={time} playerRef={playerRef} refetch={refetch}/>
       <ShowCommentView opened={openedShowView} setOpened={setOpenedShowView} data={commentData} playerRef={playerRef}/>
     </View>
     </>

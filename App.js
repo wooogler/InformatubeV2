@@ -36,7 +36,7 @@ const LOG_IN = gql`
 `;
 
 const App = () => {
-  const [login, {data} ] = useMutation(LOG_IN);
+  const [login] = useMutation(LOG_IN);
 
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -72,11 +72,14 @@ const App = () => {
   )
 
   useEffect(() => {
+    console.log('state change', state)
+  }, [state])
+
+  useEffect(() => {
     const bootstrapAsync = async () => {
       let userToken;
       try {
         userToken = await AsyncStorage.getItem('userToken');
-        console.log('usertoken',userToken);
       } catch(e) {
         console.error('No stored token', e);
       }
@@ -85,30 +88,18 @@ const App = () => {
     bootstrapAsync();
   }, [])
 
-  useEffect(() => {
-    if(data) {
-      AsyncStorage.setItem('userToken',data.login.token);
-      dispatch({type: 'SIGN_IN', token: data.login.token});
-      console.log(data.login.token);
-    }
-  }, [data])
-
-  const authContext = useMemo(
-    () => ({
-      signIn: async ({name}) => {
-        console.log('signIn');
-        login({variables: {name}})
-      },
-      signOut: async () => {
-        await AsyncStorage.removeItem('userToken');
-        dispatch({type: 'SIGN_OUT'});
-      },
-    }),
-    []
-  )
-
-  if (state.isLoading) {
-    return <Text>loading...</Text>
+  const authContext = {
+    signIn: async ({name}) => {
+      const {data} = await login({variables: {name}})
+      await AsyncStorage.setItem('userToken',data.login.token);
+      dispatch({type: 'SIGN_IN', token: data.login.token, me:data.login.user});
+      console.log('SIGN_IN');
+    },
+    signOut: async () => {
+      await AsyncStorage.removeItem('userToken');
+      dispatch({type: 'SIGN_OUT'});
+    },
+    userState: state,
   }
 
   return (
