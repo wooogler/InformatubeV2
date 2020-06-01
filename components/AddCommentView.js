@@ -137,7 +137,6 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
       name: 'tmp',
       type: 'image/png',
     })
-    console.log(file);
     let response;
     try {
       response = createComment({ variables: {
@@ -149,7 +148,6 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
     } catch (err) {
       console.log(err);
     }
-    console.log(response);
     
     Animated.timing(viewerY,{
       toValue: appHeight-200,

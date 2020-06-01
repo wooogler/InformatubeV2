@@ -19,8 +19,17 @@ const ME = gql`
   }
 `
 
-const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta, evalStage, setEvalStage}) => {
+const SORT_WITH_CF = gql`
+  mutation ($likeId: [Int!], $dislikeId: [Int!]) {
+    sortWithCF(likeId: $likeId, dislikeId: $dislikeId)
+  }
+`
+
+const SystemListHeader = ({
+  handlePressOpen, time, playerRef, commentNumber, meta, 
+  evalStage, setEvalStage, dislikeId, likeId, commentRefetch}) => {
   const me = useQuery(ME).data?.me;
+  const [sortWithCF] = useMutation(SORT_WITH_CF);
 
   const _refetch = useQuery(ME).refetch;
   const refetch = useCallback(() => { setTimeout(() => {
@@ -38,6 +47,8 @@ const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta
 
   const handlePressFinish = () => {
     setEvalStage(false);
+    sortWithCF({variables: {likeId, dislikeId}});
+    commentRefetch();
   }
 
   return (
@@ -57,8 +68,13 @@ const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta
           {evalStage && 
             <>
               <Text>평가 단계</Text>
-              <TouchableOpacity onPress={handlePressFinish}>
-                <Text style={styles.finishButton}>완료</Text>
+              <TouchableOpacity 
+                onPress={handlePressFinish}
+                disabled={!likeId && !dislikeId}
+              >
+                <Text 
+                  style={[styles.finishButton, (!likeId && !dislikeId) && {color: '#606060'}]}
+                >완료</Text>
               </TouchableOpacity>
             </>
           }

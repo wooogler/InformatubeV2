@@ -12,11 +12,10 @@ import SystemListHeader from '../components/SystemListHeader';
 import CommentItem from '../components/CommentItem';
 import AddCommentView from '../components/AddCommentView';
 import ShowCommentView from '../components/ShowCommentView';
-import {userOrder} from '../utils/cf';
 
-const VIEW_ALL_COMMENTS = gql`
-  {
-    comments{
+const VIEW_COMMENTS = gql`
+  query ViewComments ($sortNum: Float) {
+    viewComments(sortNum: $sortNum) {
       id
       text
       time
@@ -37,17 +36,7 @@ const VIEW_ALL_COMMENTS = gql`
   }
 `;
 
-const VIEW_ALL_USERS = gql`
-  {
-    users {
-      id
-    }
-  }
-`;
-
 const appWidth = Dimensions.get('window').width;
-
-
 
 const Video = () => {
 
@@ -59,8 +48,7 @@ const Video = () => {
   const [evalStage, setEvalStage] = useState(true);
   const [likeId, setLikeId] = useState([]);
   const [dislikeId, setDislikeId] = useState([]);
-  const [evalArray, setEvalArray] = useState([]);
-  const [matrix, setMatrix] = useState(null);
+  const [sortedNum, setSortedNum] = useState(1.0);
   const [time, setTime] = useState('0:00');
   const playerRef = useRef();
 
@@ -83,75 +71,22 @@ const Video = () => {
     }
   }, []);
 
-  
-
-  useEffect(() => {
-    getYoutubeMeta(videoId).then(meta => {
-      setVideoMeta(meta);
-    });
-  }, [])
-
-  const {loading, error, data} = useQuery(VIEW_ALL_COMMENTS);
-  const userData = useQuery(VIEW_ALL_USERS).data;
-  const _refetch = useQuery(VIEW_ALL_COMMENTS).refetch;
-  const refetch = useCallback(() => { setTimeout(() => {
+  const viewComments = useQuery(VIEW_COMMENTS, {
+    variables: { sortedNum }
+  });
+  const {loading, error, data} = viewComments;
+  const _refetch = viewComments.refetch;
+  const commentRefetch = useCallback(() => { setTimeout(() => {
     console.log("refetch!")
     _refetch();
   }, 0) }, [_refetch]);
 
   useEffect(() => {
-    if(data) {
-      const {comments} = data;
-      const {users} = userData;
-      let matrix = [];
-      comments.forEach((comment) => {
-        let row = [];
-        for(let i=0;i<users.length;i++) {
-          if(comment.likeUsers.find(likeUser => likeUser.id === users[i].id)){
-            row.push(1);
-          }
-          else if(comment.dislikeUsers.find(dislikeUser => dislikeUser.id === users[i].id)){
-            row.push(-1);
-          } else {
-            row.push(0);
-          }
-        }
-        matrix.push(row);
-      })
-      
-      setMatrix(matrix);
-    }
-  }, [data])
-
-  useEffect(() => {
-    if (evalStage===false) {
-      if(data) {
-        const {comments} = data;
-        console.log('comments',comments);
-        for (let i=0; i<comments.length; i++) {
-          if(likeId.includes(comments[i].id)){
-            setEvalArray(prevState => {
-              return [...prevState,1]
-            });
-          } else if(dislikeId.includes(comments[i].id)) {
-            setEvalArray(prevState => ([...prevState,-1]));
-          } else {
-            setEvalArray(prevState => ([...prevState,0]));
-          }
-        }
-      }
-      console.log('matrix', matrix);
-      console.log('evalArray', evalArray)
-      if(matrix) {
-        console.log(userOrder(matrix, evalArray));
-      }
-    }
-  }, [evalStage])
-
-  useEffect(() => {
-    console.log('likeId', likeId);
-    console.log('dislikeId', dislikeId);
-  }, [likeId, dislikeId])
+    getYoutubeMeta(videoId).then(meta => {
+      setVideoMeta(meta);
+    });
+    commentRefetch();
+  }, [])
 
   const handlePressOpen = () => {
     setOpenedAddView(true);
@@ -186,23 +121,26 @@ const Video = () => {
             meta={videoMeta}
             evalStage={evalStage}
             setEvalStage={setEvalStage}
+            dislikeId={dislikeId}
+            likeId={likeId}
+            commentRefetch={commentRefetch}
           />}
         data={data.comments}
-        keyExtractor={item => item?.id}
-        renderItem={({item}) => (
+        keyExtractor={comment => comment?.id}
+        renderItem={({comment}) => (
           <CommentItem 
-            data={item} 
+            data={comment} 
             layerRef={playerRef} 
             setCommentData={setCommentData} 
             setOpenedShowView={setOpenedShowView} 
-            refetch={refetch}
+            refetch={commentRefetch}
             evalStage={evalStage}
             setLikeId={setLikeId}
             setDislikeId={setDislikeId}
           />
         )}
       />
-      <AddCommentView opened={openedAddView} setOpened={setOpenedAddView} time={time} playerRef={playerRef} refetch={refetch}/>
+      <AddCommentView opened={openedAddView} setOpened={setOpenedAddView} time={time} playerRef={playerRef} refetch={commentRefetch}/>
       <ShowCommentView opened={openedShowView} setOpened={setOpenedShowView} data={commentData} playerRef={playerRef}/>
     </View>
     </>
