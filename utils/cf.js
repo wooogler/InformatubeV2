@@ -76,5 +76,3 @@ export const userOrder = (matrix, user_eval) => {
   console.log('new_matrix', new_matrix);
   return new_matrix[new_matrix.length-1];
 }
-
-export default cf;
