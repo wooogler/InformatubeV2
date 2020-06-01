@@ -55,21 +55,26 @@ const ME = gql`
 `
 
 let username = '';
-const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetch, evalStage, setLikeId, setDislikeId}) => {
-  username = data.author.name;
+const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, 
+  sortedNum, getComments, evalStage, setLikeId, setDislikeId}) => {
+  console.log(data);
+  username = data?.author.name;
   const me = useQuery(ME).data?.me;
-  const minsec = data.time.split(':');
-  const [min, setMin] = useState(parseInt(minsec[0]));
-  const [sec, setSec] = useState(parseInt(minsec[1]));
+  const minsec = data?.time.split(':');
+  if(minsec) {
+    const [min, setMin] = useState(parseInt(minsec[0]));
+    const [sec, setSec] = useState(parseInt(minsec[1]));
+  }
   
-  const [liked, setLiked] = useState(data.likeUsers.filter(item => item?.id === me?.id).length === 1);
-  const [disliked, setDisliked] = useState(data.dislikeUsers.filter(item => item?.id === me?.id).length === 1);
+  
+  const [liked, setLiked] = useState(data?.likeUsers.filter(item => item?.id === me?.id).length === 1);
+  const [disliked, setDisliked] = useState(data?.dislikeUsers.filter(item => item?.id === me?.id).length === 1);
   const [like] = useMutation(LIKE);
   const [cancelLike] = useMutation(CANCEL_LIKE);
   const [dislike] = useMutation(DISLIKE);
   const [cancelDislike] = useMutation(CANCEL_DISLIKE);
   const nameColor = {
-    backgroundColor: stc(data.author.name),
+    backgroundColor: stc(data?.author.name),
   }
 
   const handlePressTime = () => {
@@ -90,7 +95,7 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetc
         cancelLike({variables: {
           commentId: parseInt(data.id),
         }})
-        refetch();
+        getComments({variables: {sortedNum}});
       }
     }
     else {
@@ -101,7 +106,7 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetc
         like({variables: {
           commentId: parseInt(data.id),
         }})
-        refetch();
+        getComments({variables: {sortedNum}});
       }
     }
   }
@@ -115,7 +120,7 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetc
         cancelDislike({variables: {
           commentId: parseInt(data.id),
         }})
-        refetch();
+        getComments({variables: {sortedNum}});
       }
     }
     else {
@@ -126,50 +131,55 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetc
         dislike({variables: {
           commentId: parseInt(data.id),
         }})
-        refetch();
+        getComments({variables: {sortedNum}});
       }
     }
     
   }
 
   return (
-    <View style={styles.commentItemContainer}>
-      <View style={styles.commentImageContainer}>
-        <View style={[styles.profileIcon, nameColor]}>
-          <Text style={styles.profileText}>{data.author.name.charAt(0)}</Text>
+    <>
+    {
+      data &&
+      <View style={styles.commentItemContainer}>
+        <View style={styles.commentImageContainer}>
+          <View style={[styles.profileIcon, nameColor]}>
+            <Text style={styles.profileText}>{data.author.name.charAt(0)}</Text>
+          </View>
+        </View>
+        <View style={styles.commentTextContainer}>
+          <Text>
+            <Text>{data.author.name} · </Text>
+            <Text>{moment(data.createdAt).fromNow()}</Text>
+          </Text>
+          <Text>
+            <Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
+            <Text>{data.text}</Text>
+          </Text>
+          <View style={styles.commentInteractionContainer}>
+            {
+            me?.id !== data?.author.id && <><TouchableOpacity 
+              style={styles.commentLikeButton}
+              onPress={handlePressLike}
+            >
+              <Icon name='ios-thumbs-up' color={liked ? "#1366D4" : "#909090"} size={16}></Icon>
+            </TouchableOpacity>
+            <Text>{data.likeUsers.length}</Text>
+            <TouchableOpacity 
+              style={styles.commentDislikeButton}
+              onPress={handlePressDislike}
+            >
+              <Icon name='ios-thumbs-down' color={disliked ? "#1366D4" : "#909090"} size={16}></Icon>
+            </TouchableOpacity></>
+            }
+            <TouchableOpacity onPress={handlePressBrowser} style={styles.commentWebpageButton}>
+              <Icon name='ios-browsers' color="#909090" size={16}></Icon>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
-      <View style={styles.commentTextContainer}>
-        <Text>
-          <Text>{data.author.name} · </Text>
-          <Text>{moment(data.createdAt).fromNow()}</Text>
-        </Text>
-        <Text>
-          <Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
-          <Text>{data.text}</Text>
-        </Text>
-        <View style={styles.commentInteractionContainer}>
-          {
-          me?.id !== data?.author.id && <><TouchableOpacity 
-            style={styles.commentLikeButton}
-            onPress={handlePressLike}
-          >
-            <Icon name='ios-thumbs-up' color={liked ? "#1366D4" : "#909090"} size={16}></Icon>
-          </TouchableOpacity>
-          <Text>{data.likeUsers.length}</Text>
-          <TouchableOpacity 
-            style={styles.commentDislikeButton}
-            onPress={handlePressDislike}
-          >
-            <Icon name='ios-thumbs-down' color={disliked ? "#1366D4" : "#909090"} size={16}></Icon>
-          </TouchableOpacity></>
-          }
-          <TouchableOpacity onPress={handlePressBrowser} style={styles.commentWebpageButton}>
-            <Icon name='ios-browsers' color="#909090" size={16}></Icon>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+    }
+    </>
   )
 }
 

@@ -32,7 +32,7 @@ const CREATE_COMMENT = gql`
   }
 `;
 
-const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
+const AddCommentView = ({opened, setOpened, time, playerRef, sortedNum, getComments}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [isTimePicker, setIsTimePicker] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -75,7 +75,6 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
   }, [opened])
 
   const handlePressClose = () => {
-    refetch();
     Animated.timing(viewerY,{
       toValue: appHeight-200,
       duration: 500,
@@ -148,7 +147,6 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
     } catch (err) {
       console.log(err);
     }
-    
     Animated.timing(viewerY,{
       toValue: appHeight-200,
       duration: 500,
@@ -156,7 +154,9 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
     commentRef.current?.blur();
     setOpened(false);
     setMode('hide');
-    setTimeout(() => refetch(),1000);
+    setTimeout(() => {
+      getComments({variables: {sortedNum}})
+    }, 1000);
   }
 
   const handlePressBackdrop = () => {

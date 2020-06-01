@@ -7,14 +7,14 @@ import {
   Text,
 } from 'react-native';
 import YoutubePlayer, {getYoutubeMeta} from 'react-native-youtube-iframe';
-import {gql, useQuery} from '@apollo/client';
+import {gql, useQuery, useLazyQuery} from '@apollo/client';
 import SystemListHeader from '../components/SystemListHeader';
 import CommentItem from '../components/CommentItem';
 import AddCommentView from '../components/AddCommentView';
 import ShowCommentView from '../components/ShowCommentView';
 
 const VIEW_COMMENTS = gql`
-  query ViewComments ($sortNum: Float) {
+  query ViewComments ($sortNum: Float! = 1.0) {
     viewComments(sortNum: $sortNum) {
       id
       text
@@ -71,21 +71,13 @@ const Video = () => {
     }
   }, []);
 
-  const viewComments = useQuery(VIEW_COMMENTS, {
-    variables: { sortedNum }
-  });
-  const {loading, error, data} = viewComments;
-  const _refetch = viewComments.refetch;
-  const commentRefetch = useCallback(() => { setTimeout(() => {
-    console.log("refetch!")
-    _refetch();
-  }, 0) }, [_refetch]);
+  const [getComments, {loading, data, error}] = useLazyQuery(VIEW_COMMENTS);
 
   useEffect(() => {
     getYoutubeMeta(videoId).then(meta => {
       setVideoMeta(meta);
     });
-    commentRefetch();
+    getComments({variables: {sortedNum}})
   }, [])
 
   const handlePressOpen = () => {
@@ -110,39 +102,57 @@ const Video = () => {
         ref={playerRef}
       />
     </View>
-    <View style={styles.systemListContainer}>
-      <FlatList 
-        style={styles.systemList}
-        ListHeaderComponent={
-          <SystemListHeader 
-            handlePressOpen={handlePressOpen} 
-            time={time} playerRef={playerRef} 
-            commentNumber={data.comments.length} 
-            meta={videoMeta}
-            evalStage={evalStage}
-            setEvalStage={setEvalStage}
-            dislikeId={dislikeId}
-            likeId={likeId}
-            commentRefetch={commentRefetch}
-          />}
-        data={data.comments}
-        keyExtractor={comment => comment?.id}
-        renderItem={({comment}) => (
-          <CommentItem 
-            data={comment} 
-            layerRef={playerRef} 
-            setCommentData={setCommentData} 
-            setOpenedShowView={setOpenedShowView} 
-            refetch={commentRefetch}
-            evalStage={evalStage}
-            setLikeId={setLikeId}
-            setDislikeId={setDislikeId}
-          />
-        )}
-      />
-      <AddCommentView opened={openedAddView} setOpened={setOpenedAddView} time={time} playerRef={playerRef} refetch={commentRefetch}/>
-      <ShowCommentView opened={openedShowView} setOpened={setOpenedShowView} data={commentData} playerRef={playerRef}/>
-    </View>
+    {
+      data &&
+      <View style={styles.systemListContainer}>
+        <FlatList 
+          style={styles.systemList}
+          ListHeaderComponent={
+            <SystemListHeader 
+              handlePressOpen={handlePressOpen} 
+              time={time} playerRef={playerRef} 
+              commentNumber={data.viewComments.length} 
+              meta={videoMeta}
+              evalStage={evalStage}
+              setEvalStage={setEvalStage}
+              dislikeId={dislikeId}
+              likeId={likeId}
+              sortedNum={sortedNum}
+              getComments={getComments}
+            />}
+          data={data.viewComments}
+          keyExtractor={comment => comment?.id}
+          renderItem={({comment}) => (
+            <CommentItem
+              data={comment} 
+              layerRef={playerRef} 
+              setCommentData={setCommentData} 
+              setOpenedShowView={setOpenedShowView} 
+              sortedNum={sortedNum}
+              getComments={getComments}
+              evalStage={evalStage}
+              setLikeId={setLikeId}
+              setDislikeId={setDislikeId}
+            />
+          )}
+        />
+        <AddCommentView 
+          opened={openedAddView} 
+          setOpened={setOpenedAddView} 
+          time={time} 
+          playerRef={playerRef} 
+          sortedNum={sortedNum}
+          getComments={getComments}
+        />
+        <ShowCommentView 
+          opened={openedShowView}
+          setOpened={setOpenedShowView} 
+          data={commentData}
+          playerRef={playerRef}
+        />
+      </View>
+    }
+    
     </>
   );
 }

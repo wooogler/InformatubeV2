@@ -7,7 +7,7 @@ import {
   Button,
 } from 'react-native';
 import TimePicker from './TimePicker';
-import {gql, useQuery} from '@apollo/client';
+import {gql, useQuery, useMutation} from '@apollo/client';
 const stc = require('string-to-color');
 
 const ME = gql`
@@ -27,7 +27,7 @@ const SORT_WITH_CF = gql`
 
 const SystemListHeader = ({
   handlePressOpen, time, playerRef, commentNumber, meta, 
-  evalStage, setEvalStage, dislikeId, likeId, commentRefetch}) => {
+  evalStage, setEvalStage, dislikeId, likeId, sortedNum, getComments}) => {
   const me = useQuery(ME).data?.me;
   const [sortWithCF] = useMutation(SORT_WITH_CF);
 
@@ -48,7 +48,7 @@ const SystemListHeader = ({
   const handlePressFinish = () => {
     setEvalStage(false);
     sortWithCF({variables: {likeId, dislikeId}});
-    commentRefetch();
+    getComments({variables: {sortedNum}});
   }
 
   return (
