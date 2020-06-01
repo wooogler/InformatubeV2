@@ -4,6 +4,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Button,
 } from 'react-native';
 import TimePicker from './TimePicker';
 import {gql, useQuery} from '@apollo/client';
@@ -18,7 +19,7 @@ const ME = gql`
   }
 `
 
-const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta}) => {
+const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta, evalStage, setEvalStage}) => {
   const me = useQuery(ME).data?.me;
 
   const _refetch = useQuery(ME).refetch;
@@ -30,9 +31,15 @@ const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta
   useEffect(() => {
     refetch();
   }, [])
+
   const nameColor = {
     backgroundColor: me && stc(me.name),
   }
+
+  const handlePressFinish = () => {
+    setEvalStage(false);
+  }
+
   return (
     <>
       <View style={styles.infoContainer}>
@@ -42,25 +49,39 @@ const SystemListHeader = ({handlePressOpen, time, playerRef, commentNumber, meta
         <Text style={styles.videoUploaderName}>
           {meta?.author_name}
         </Text>
+        
       </View>
       <View style={styles.commentsHeaderContainer}>
-        <Text style={styles.commentsText}>댓글 {commentNumber}개</Text>
-        <View style={styles.commentInputContainer}>
-          <View style={[styles.profileIcon, nameColor]}>
-            <Text style={styles.profileText}>{me?.name.charAt(0)}</Text>
-          </View>
-          <TimePicker
-            time={time}
-            playerRef={playerRef}
-          />
-          <TouchableOpacity
-            onPress={handlePressOpen}
-          >
-            <Text
-              style={styles.textInput}
-            >키워드 검색...</Text>
-          </TouchableOpacity>
+        <View style={styles.commentNumberContainer}>
+          <Text style={styles.commentsText}>댓글 {commentNumber}개</Text>
+          {evalStage && 
+            <>
+              <Text>평가 단계</Text>
+              <TouchableOpacity onPress={handlePressFinish}>
+                <Text style={styles.finishButton}>완료</Text>
+              </TouchableOpacity>
+            </>
+          }
         </View>
+        {
+          !evalStage && 
+          <View style={styles.commentInputContainer}>
+            <View style={[styles.profileIcon, nameColor]}>
+              <Text style={styles.profileText}>{me?.name.charAt(0)}</Text>
+            </View>
+            <TimePicker
+              time={time}
+              playerRef={playerRef}
+            />
+            <TouchableOpacity
+              onPress={handlePressOpen}
+            >
+              <Text
+                style={styles.textInput}
+              >키워드 검색...</Text>
+            </TouchableOpacity>
+          </View>
+        }
       </View>
     </>
   )
@@ -82,7 +103,6 @@ const styles = StyleSheet.create({
   commentsHeaderContainer: {
     padding: 15,
     backgroundColor: 'white',
-    height: 100,
     borderTopColor: '#DBDBDB',
     borderTopWidth: 1,
   },
@@ -93,6 +113,10 @@ const styles = StyleSheet.create({
   commentInputContainer: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  commentNumberContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between"
   },
   profileIcon: {
     height: 40,
@@ -115,6 +139,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#606060',
   },
+  finishButton: {
+    color: '#1366D4',
+  }
 });
 
 export default SystemListHeader;

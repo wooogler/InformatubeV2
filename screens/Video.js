@@ -12,6 +12,7 @@ import SystemListHeader from '../components/SystemListHeader';
 import CommentItem from '../components/CommentItem';
 import AddCommentView from '../components/AddCommentView';
 import ShowCommentView from '../components/ShowCommentView';
+import {userOrder} from '../utils/cf';
 
 const VIEW_ALL_COMMENTS = gql`
   {
@@ -56,6 +57,10 @@ const Video = () => {
   const [openedShowView, setOpenedShowView] = useState(false);
   const [commentData, setCommentData] = useState(null);
   const [evalStage, setEvalStage] = useState(true);
+  const [likeId, setLikeId] = useState([]);
+  const [dislikeId, setDislikeId] = useState([]);
+  const [evalArray, setEvalArray] = useState([]);
+  const [matrix, setMatrix] = useState(null);
   const [time, setTime] = useState('0:00');
   const playerRef = useRef();
 
@@ -113,16 +118,40 @@ const Video = () => {
         }
         matrix.push(row);
       })
-      console.log(matrix);
+      
+      setMatrix(matrix);
     }
-    
   }, [data])
-  
-  useEffect(() => {
-    if(evalStage === true) {
 
+  useEffect(() => {
+    if (evalStage===false) {
+      if(data) {
+        const {comments} = data;
+        console.log('comments',comments);
+        for (let i=0; i<comments.length; i++) {
+          if(likeId.includes(comments[i].id)){
+            setEvalArray(prevState => {
+              return [...prevState,1]
+            });
+          } else if(dislikeId.includes(comments[i].id)) {
+            setEvalArray(prevState => ([...prevState,-1]));
+          } else {
+            setEvalArray(prevState => ([...prevState,0]));
+          }
+        }
+      }
+      console.log('matrix', matrix);
+      console.log('evalArray', evalArray)
+      if(matrix) {
+        console.log(userOrder(matrix, evalArray));
+      }
     }
   }, [evalStage])
+
+  useEffect(() => {
+    console.log('likeId', likeId);
+    console.log('dislikeId', dislikeId);
+  }, [likeId, dislikeId])
 
   const handlePressOpen = () => {
     setOpenedAddView(true);
@@ -149,7 +178,15 @@ const Video = () => {
     <View style={styles.systemListContainer}>
       <FlatList 
         style={styles.systemList}
-        ListHeaderComponent={<SystemListHeader handlePressOpen={handlePressOpen} time={time} playerRef={playerRef} commentNumber={data.comments.length} meta={videoMeta}/>}
+        ListHeaderComponent={
+          <SystemListHeader 
+            handlePressOpen={handlePressOpen} 
+            time={time} playerRef={playerRef} 
+            commentNumber={data.comments.length} 
+            meta={videoMeta}
+            evalStage={evalStage}
+            setEvalStage={setEvalStage}
+          />}
         data={data.comments}
         keyExtractor={item => item?.id}
         renderItem={({item}) => (
@@ -160,6 +197,8 @@ const Video = () => {
             setOpenedShowView={setOpenedShowView} 
             refetch={refetch}
             evalStage={evalStage}
+            setLikeId={setLikeId}
+            setDislikeId={setDislikeId}
           />
         )}
       />

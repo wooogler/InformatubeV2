@@ -55,7 +55,7 @@ const ME = gql`
 `
 
 let username = '';
-const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetch, evalStage}) => {
+const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetch, evalStage, setLikeId, setDislikeId}) => {
   username = data.author.name;
   const me = useQuery(ME).data?.me;
   const minsec = data.time.split(':');
@@ -84,33 +84,52 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, refetc
   const handlePressLike = () => {
     if(liked == true) {
       setLiked(false);
-      cancelLike({variables: {
-        commentId: parseInt(data.id),
-      }})
+      if(evalStage) {
+        setLikeId((prevState) => (prevState.filter(id => id!==data.id)))
+      } else {
+        cancelLike({variables: {
+          commentId: parseInt(data.id),
+        }})
+        refetch();
+      }
     }
     else {
       setLiked(true);
-      like({variables: {
-        commentId: parseInt(data.id),
-      }})
+      if(evalStage) {
+        setLikeId((prevState) => ([...prevState, data.id]))
+      } else {
+        like({variables: {
+          commentId: parseInt(data.id),
+        }})
+        refetch();
+      }
     }
-    refetch();
   }
 
   const handlePressDislike = () => {
     if(disliked == true) {
       setDisliked(false);
-      cancelDislike({variables: {
-        commentId: parseInt(data.id),
-      }})
+      if(evalStage) {
+        setDislikeId((prevState) => (prevState.filter(id => id!==data.id)))
+      } else {
+        cancelDislike({variables: {
+          commentId: parseInt(data.id),
+        }})
+        refetch();
+      }
     }
     else {
       setDisliked(true);
-      dislike({variables: {
-        commentId: parseInt(data.id),
-      }})
+      if(evalStage) {
+        setDislikeId((prevState) => ([...prevState, data.id]))
+      } else {
+        dislike({variables: {
+          commentId: parseInt(data.id),
+        }})
+        refetch();
+      }
     }
-    refetch();
+    
   }
 
   return (
