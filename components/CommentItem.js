@@ -57,7 +57,6 @@ const ME = gql`
 let username = '';
 const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, 
   sortedNum, getComments, evalStage, setLikeId, setDislikeId}) => {
-  console.log(data);
   username = data?.author.name;
   const me = useQuery(ME).data?.me;
   const minsec = data?.time.split(':');
@@ -151,6 +150,7 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView,
           <Text>
             <Text>{data.author.name} · </Text>
             <Text>{moment(data.createdAt).fromNow()}</Text>
+            {!evalStage && <Text> · 유사도: {data.sort?.toFixed(2)}</Text>}
           </Text>
           <Text>
             <Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
@@ -164,13 +164,14 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView,
             >
               <Icon name='ios-thumbs-up' color={liked ? "#1366D4" : "#909090"} size={16}></Icon>
             </TouchableOpacity>
-            <Text>{data.likeUsers.length}</Text>
+            {!evalStage && <Text>{data.likeUsers.length}</Text>}
             <TouchableOpacity 
               style={styles.commentDislikeButton}
               onPress={handlePressDislike}
             >
               <Icon name='ios-thumbs-down' color={disliked ? "#1366D4" : "#909090"} size={16}></Icon>
-            </TouchableOpacity></>
+            </TouchableOpacity>
+            </>
             }
             <TouchableOpacity onPress={handlePressBrowser} style={styles.commentWebpageButton}>
               <Icon name='ios-browsers' color="#909090" size={16}></Icon>

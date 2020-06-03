@@ -235,6 +235,8 @@ PODS:
   - React-jsinspector (0.62.0)
   - react-native-safe-area-context (0.7.3):
     - React
+  - react-native-slider (3.0.0):
+    - React
   - react-native-view-shot (3.1.2):
     - React
   - react-native-webview (9.2.1):
@@ -343,6 +345,7 @@ DEPENDENCIES:
   - React-jsiexecutor (from `../node_modules/react-native/ReactCommon/jsiexecutor`)
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
+  - "react-native-slider (from `../node_modules/@react-native-community/slider`)"
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-RCTActionSheet (from `../node_modules/react-native/Libraries/ActionSheetIOS`)
@@ -413,6 +416,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/jsinspector"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
+  react-native-slider:
+    :path: "../node_modules/@react-native-community/slider"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
   react-native-webview:
@@ -485,6 +490,7 @@ SPEC CHECKSUMS:
   React-jsiexecutor: 8bf0b2707f05865113415088c398a7f98c0cf546
   React-jsinspector: 8e5913c4c6c54f0d3f9c9fc630c465a89cded65d
   react-native-safe-area-context: 8260e5157617df4b72865f44006797f895b2ada7
+  react-native-slider: 05f11678260cb27c3d00a2dd1558b623be3ec8d2
   react-native-view-shot: 08c46c9e8e92f6681e8f2ffa55ac3d06e7e99070
   react-native-webview: ac2927a8a5e48fabb738b393b289bd996e14ed32
   React-RCTActionSheet: 674afbc8b9c76e0a83520e0a51da29a70802c03f

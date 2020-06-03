@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Button,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import TimePicker from './TimePicker';
 import {gql, useQuery, useMutation} from '@apollo/client';
 const stc = require('string-to-color');
@@ -31,16 +32,6 @@ const SystemListHeader = ({
   const me = useQuery(ME).data?.me;
   const [sortWithCF] = useMutation(SORT_WITH_CF);
 
-  const _refetch = useQuery(ME).refetch;
-  const refetch = useCallback(() => { setTimeout(() => {
-    console.log("refetch!")
-    _refetch();
-  }, 0) }, [_refetch]);
-
-  useEffect(() => {
-    refetch();
-  }, [])
-
   const nameColor = {
     backgroundColor: me && stc(me.name),
   }
@@ -64,10 +55,12 @@ const SystemListHeader = ({
       </View>
       <View style={styles.commentsHeaderContainer}>
         <View style={styles.commentNumberContainer}>
-          <Text style={styles.commentsText}>댓글 {commentNumber}개</Text>
-          {evalStage && 
+          {evalStage ? 
+            <Text style={styles.commentsText}>평가 단계</Text> :
+            <Text style={styles.commentsText}>댓글 {commentNumber}개</Text>
+          }
+          {evalStage ?
             <>
-              <Text>평가 단계</Text>
               <TouchableOpacity 
                 onPress={handlePressFinish}
                 disabled={!likeId && !dislikeId}
@@ -77,6 +70,8 @@ const SystemListHeader = ({
                 >완료</Text>
               </TouchableOpacity>
             </>
+            :
+            <Slider/>
           }
         </View>
         {
@@ -157,6 +152,7 @@ const styles = StyleSheet.create({
   },
   finishButton: {
     color: '#1366D4',
+    fontSize: 20,
   }
 });
 

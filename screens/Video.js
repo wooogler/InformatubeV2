@@ -12,10 +12,35 @@ import SystemListHeader from '../components/SystemListHeader';
 import CommentItem from '../components/CommentItem';
 import AddCommentView from '../components/AddCommentView';
 import ShowCommentView from '../components/ShowCommentView';
+import { Picker } from '@react-native-community/picker';
 
 const VIEW_COMMENTS = gql`
   query ViewComments ($sortNum: Float! = 1.0) {
     viewComments(sortNum: $sortNum) {
+      id
+      text
+      time
+      createdAt
+      likeUsers {
+        id
+      }
+      dislikeUsers {
+        id
+      }
+      author {
+        id
+        name
+      }
+      imageUrl
+      url
+      sort
+    }
+  }
+`;
+
+const VIEW_RANDOM_COMMENTS = gql`
+  query ViewRandomComments {
+    viewRandomComments {
       id
       text
       time
@@ -45,11 +70,13 @@ const Video = () => {
   const [openedAddView, setOpenedAddView] = useState(false);
   const [openedShowView, setOpenedShowView] = useState(false);
   const [commentData, setCommentData] = useState(null);
+  const [comments, setComments] = useState(null);
   const [evalStage, setEvalStage] = useState(true);
   const [likeId, setLikeId] = useState([]);
   const [dislikeId, setDislikeId] = useState([]);
   const [sortedNum, setSortedNum] = useState(1.0);
   const [time, setTime] = useState('0:00');
+  const [refresh, setRefresh] = useState(true);
   const playerRef = useRef();
 
   useEffect(() => {
@@ -72,24 +99,41 @@ const Video = () => {
   }, []);
 
   const [getComments, {loading, data, error}] = useLazyQuery(VIEW_COMMENTS);
+  const [getRandomComments, {loading: randomLoading, data: randomData, error: randomError}] = useLazyQuery(VIEW_RANDOM_COMMENTS)
 
   useEffect(() => {
     getYoutubeMeta(videoId).then(meta => {
       setVideoMeta(meta);
     });
-    getComments({variables: {sortedNum}})
   }, [])
+
+  useEffect(() => {
+    getRandomComments();
+    setComments(randomData?.viewRandomComments);
+  }, [randomData])
+
+  useEffect(() => {
+    if(evalStage === false) {
+      console.log('evalStage', data?.viewComments)
+      setComments(data?.viewComments);
+    }
+  }, [evalStage]);
+
+  useEffect(() => {
+    getComments({variables: {sortedNum}});
+    setComments(data?.viewComments);
+  }, [sortedNum])
 
   const handlePressOpen = () => {
     setOpenedAddView(true);
   }
 
-  if(loading) {
-    return (<Text>Loading Comments...</Text>);
+  if(randomLoading) {
+    return (<Text>Loading Random Comments...</Text>);
   }
 
-  if(error) {
-    return (<Text>Loading Comments Error! {String(error)}</Text>);
+  if(randomError) {
+    return (<Text>Loading Random Comments Error! {String(randomError)}</Text>);
   }
 
   return (
@@ -103,7 +147,7 @@ const Video = () => {
       />
     </View>
     {
-      data &&
+      comments &&
       <View style={styles.systemListContainer}>
         <FlatList 
           style={styles.systemList}
@@ -111,7 +155,7 @@ const Video = () => {
             <SystemListHeader 
               handlePressOpen={handlePressOpen} 
               time={time} playerRef={playerRef} 
-              commentNumber={data.viewComments.length} 
+              commentNumber={comments.length} 
               meta={videoMeta}
               evalStage={evalStage}
               setEvalStage={setEvalStage}
@@ -120,9 +164,10 @@ const Video = () => {
               sortedNum={sortedNum}
               getComments={getComments}
             />}
-          data={data.viewComments}
-          keyExtractor={comment => comment?.id}
-          renderItem={({comment}) => (
+          data={comments}
+          extraData={refresh}
+          keyExtractor={comment => comment.id}
+          renderItem={({item: comment}) => (
             <CommentItem
               data={comment} 
               layerRef={playerRef} 
