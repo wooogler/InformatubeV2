@@ -32,7 +32,7 @@ const CREATE_COMMENT = gql`
   }
 `;
 
-const AddCommentView = ({opened, setOpened, time, playerRef, sortedNum, getComments}) => {
+const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
   const [viewerY, setViewerY] = useState(new Animated.Value(appHeight-200));
   const [isTimePicker, setIsTimePicker] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -155,7 +155,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef, sortedNum, getComme
     setOpened(false);
     setMode('hide');
     setTimeout(() => {
-      getComments({variables: {sortedNum}})
+      refetch();
     }, 1000);
   }
 

@@ -56,7 +56,7 @@ const ME = gql`
 
 let username = '';
 const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView, 
-  sortedNum, getComments, evalStage, setLikeId, setDislikeId}) => {
+  refetch, evalStage, setLikeId, setDislikeId}) => {
   username = data?.author.name;
   const me = useQuery(ME).data?.me;
   const minsec = data?.time.split(':');
@@ -88,52 +88,37 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView,
   const handlePressLike = () => {
     if(liked == true) {
       setLiked(false);
-      if(evalStage) {
-        setLikeId((prevState) => (prevState.filter(id => id!==data.id)))
-      } else {
-        cancelLike({variables: {
-          commentId: parseInt(data.id),
-        }})
-        getComments({variables: {sortedNum}});
-      }
+      setLikeId((prevState) => (prevState.filter(id => id!==data.id)))
+      cancelLike({variables: {
+        commentId: parseInt(data.id),
+      }})
     }
     else {
       setLiked(true);
-      if(evalStage) {
-        setLikeId((prevState) => ([...prevState, data.id]))
-      } else {
-        like({variables: {
-          commentId: parseInt(data.id),
-        }})
-        getComments({variables: {sortedNum}});
-      }
+      setLikeId((prevState) => ([...prevState, data.id]))
+      like({variables: {
+        commentId: parseInt(data.id),
+      }})
     }
+    refetch();
   }
 
   const handlePressDislike = () => {
     if(disliked == true) {
       setDisliked(false);
-      if(evalStage) {
-        setDislikeId((prevState) => (prevState.filter(id => id!==data.id)))
-      } else {
-        cancelDislike({variables: {
-          commentId: parseInt(data.id),
-        }})
-        getComments({variables: {sortedNum}});
-      }
+      setDislikeId((prevState) => (prevState.filter(id => id!==data.id)))
+      cancelDislike({variables: {
+        commentId: parseInt(data.id),
+      }})
     }
     else {
       setDisliked(true);
-      if(evalStage) {
-        setDislikeId((prevState) => ([...prevState, data.id]))
-      } else {
-        dislike({variables: {
-          commentId: parseInt(data.id),
-        }})
-        getComments({variables: {sortedNum}});
-      }
+      setDislikeId((prevState) => ([...prevState, data.id]))
+      dislike({variables: {
+        commentId: parseInt(data.id),
+      }})
     }
-    
+    refetch();
   }
 
   return (

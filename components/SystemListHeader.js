@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -28,9 +28,10 @@ const SORT_WITH_CF = gql`
 
 const SystemListHeader = ({
   handlePressOpen, time, playerRef, commentNumber, meta, 
-  evalStage, setEvalStage, dislikeId, likeId, sortedNum, getComments}) => {
+  evalStage, setEvalStage, dislikeId, likeId, refetch, setSortedNum}) => {
   const me = useQuery(ME).data?.me;
   const [sortWithCF] = useMutation(SORT_WITH_CF);
+  const [sliderValue, setSliderValue] = useState(1.0);
 
   const nameColor = {
     backgroundColor: me && stc(me.name),
@@ -39,7 +40,11 @@ const SystemListHeader = ({
   const handlePressFinish = () => {
     setEvalStage(false);
     sortWithCF({variables: {likeId, dislikeId}});
-    getComments({variables: {sortedNum}});
+  }
+
+  const handleSlidingComplete = (value) => {
+    setSliderValue(value);
+    setSortedNum(value);
   }
 
   return (
@@ -71,7 +76,17 @@ const SystemListHeader = ({
               </TouchableOpacity>
             </>
             :
-            <Slider/>
+            <>
+            <Text>유사도 낮음</Text>
+            <Slider
+              style={{width: 100, height: 20}}
+              minimumValue={0.0}
+              maximumValue={1.0}
+              onSlidingComplete={handleSlidingComplete}
+              value={sliderValue}
+            />
+            <Text>유사도 높음</Text>
+            </>
           }
         </View>
         {
