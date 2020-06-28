@@ -16,7 +16,6 @@ const uploadLink = createUploadLink({
 
 const authLink = setContext(async (_, { headers }) => {
   const token = await AsyncStorage.getItem('userToken');
-  console.log(token);
   return {
     headers: {
       ...headers,

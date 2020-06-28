@@ -98,7 +98,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
   }
 
   const handlePressHighlighter =() => {
-    setStrokeColor('#FFFF3399');
+    setStrokeColor('#FFFF3388');
     setStrokeWidth(10)
     setTool('highlighter');
   }
@@ -123,10 +123,11 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
 
   const handleSubmit = () => {
     setMode('webview');
+    inputRef.current.blur();
   }
 
   const handleSubmitComment = () => {
-    canvasRef.current.save('png',true,'images','tmp',true,true,true);
+    canvasRef?.current?.save('png',true,'images','tmp',true,true,true);
     const imageUriArr = imageUri.split('/');
     imageUriArr.splice(-2,2);
     const tmpUriArr = imageUriArr.concat(['images', 'tmp.png']);
@@ -144,7 +145,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
         url,
         image: file,
       }})
-    } catch (err) {
+    } catch (err) {<Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
       console.log(err);
     }
     Animated.timing(viewerY,{
@@ -156,11 +157,12 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
     setMode('hide');
     setTimeout(() => {
       refetch();
-    }, 1000);
+    },500)
   }
 
   const handlePressBackdrop = () => {
     setMode('captured');
+    inputRef?.current?.blur();
   }
 
   const handleNavigationStateChange =(newNavState) => {
@@ -178,10 +180,7 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
   return (
     <Animated.View style={animatedStyle()}>
       <View style={styles.headerContainer}>
-        <TimePicker
-          time={time}
-          playerRef={playerRef}
-        />
+        <Text style={styles.timeText}>{time} </Text>
         <TextInput
           style={styles.textInput}
           placeholder='키워드 검색...'
@@ -192,18 +191,24 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
           value={keyword}
           onSubmitEditing={handleSubmit}
         />
-        <TouchableOpacity onPress={handleBackward} style={styles.backward}>
-          <Text>뒤로</Text>
-        </TouchableOpacity>
+        {
+
+        }
+        
         {
           mode=='hide' ? 
           <TouchableOpacity onPress={handleSubmit}>
             <Text>검색</Text>
           </TouchableOpacity>
           : mode =='webview' ?
-          <TouchableOpacity onPress={handlePressCapture}>
+          <>
+          <TouchableOpacity onPress={handleBackward} style={styles.backward}>
+            <Text>뒤로</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handlePressCapture} style={{marginRight:10}}>
             <Text>캡처</Text>
           </TouchableOpacity>
+          </>
           : mode == 'captured' ?
           <TouchableOpacity onPress={handleSubmit}>
             <Text>취소</Text>
@@ -211,15 +216,15 @@ const AddCommentView = ({opened, setOpened, time, playerRef, refetch}) => {
           : 
           <Text></Text>
         }
-        <TouchableOpacity onPress={handlePressClose}>
-          <Text>X</Text>
+        <TouchableOpacity style={{marginLeft:20}}onPress={handlePressClose}>
+          <Text>닫기</Text>
         </TouchableOpacity>
       </View>
       <ScrollView style={styles.mainContainer}>
         {
           mode == 'hide' ?
           <View>
-            <Text>hide</Text>
+            <Text></Text>
           </View>
           :
           <ViewShot ref={viewShotRef}>
@@ -327,11 +332,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: appWidth,
     height: 100,
-    backgroundColor: '#F5F6FA',
+    backgroundColor: '#FFFFFF',
     display: 'flex',
     flexDirection: "row",
     justifyContent: 'space-around',
-    paddingTop: 20
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#606060'
   },
   imageView: {
     position: 'absolute',
@@ -353,7 +360,12 @@ const styles = StyleSheet.create({
   },
   backward: {
     marginRight: 20
-  }
+  },
+  timeText: {
+    fontSize: 15,
+    color: '#1366D4',
+    marginRight: 5,
+  },
 });
 
 export default AddCommentView;

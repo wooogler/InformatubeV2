@@ -14,9 +14,9 @@ import AddCommentView from '../components/AddCommentView';
 import ShowCommentView from '../components/ShowCommentView';
 import { Picker } from '@react-native-community/picker';
 
-export const VIEW_COMMENTS = gql`
-  query ViewComments ($sortNum: Float! = 1.0) {
-    viewComments(sortNum: $sortNum) {
+const COMMENTS = gql`
+  query Comments {
+    comments {
       id
       text
       time
@@ -76,7 +76,6 @@ const Video = () => {
   const [dislikeId, setDislikeId] = useState([]);
   const [sortedNum, setSortedNum] = useState(1.0);
   const [time, setTime] = useState('0:00');
-  const [refresh, setRefresh] = useState(0);
   const playerRef = useRef();
 
   useEffect(() => {
@@ -98,10 +97,7 @@ const Video = () => {
     }
   }, []);
 
-  const {data, loading, error, refetch} = useQuery(VIEW_COMMENTS, {
-    variables: {sortedNum},
-    notifyOnNetworkStatusChange: true,
-  });
+  const {data, loading, error, refetch} = useQuery(COMMENTS);
   const {data: randomData, loading: randomLoading, error: randomError, refetch: randomRefetch} = useQuery(VIEW_RANDOM_COMMENTS);
 
   useEffect(() => {
@@ -121,22 +117,14 @@ const Video = () => {
   }, [randomData])
 
   useEffect(() => {
-    if(evalStage === false) {
-      setComments(data?.viewComments);
-    }
-  }, [data])
-
-  useEffect(() => {
     if(evalStage===false) {
-      setTimeout(() => {
-        refetch();
-        console.log(data?.viewComments);
-        console.log(sortedNum);
-        setComments(data?.viewComments);
-        setRefresh(state => state+1);
-      }, 50);
+      refetch();
+      const comments = data?.comments;
+      const sortedComments = [...comments].sort((a,b) => Math.abs(sortedNum-a.sort)-Math.abs(sortedNum-b.sort));
+      setComments(sortedComments);
+      console.log(sortedComments);
     }
-  }, [evalStage, sortedNum])
+  }, [evalStage, sortedNum, data])
 
   const handlePressOpen = () => {
     setOpenedAddView(true);
@@ -148,6 +136,10 @@ const Video = () => {
 
   if(randomError) {
     return (<Text>Loading Random Comments Error! {String(randomError)}</Text>);
+  }
+
+  if(loading) {
+    return (<Text>Loading All Comments...</Text>);
   }
 
   return (
@@ -181,8 +173,7 @@ const Video = () => {
               refetch={refetch}
             />}
           data={comments}
-          extraData={refresh}
-          keyExtractor={(item,index) => index}
+          keyExtractor={item => item.id}
           renderItem={({item: comment}) => (
             <CommentItem
               data={comment} 
@@ -197,7 +188,6 @@ const Video = () => {
           )}
         />
         }
-        
         <AddCommentView 
           opened={openedAddView} 
           setOpened={setOpenedAddView} 

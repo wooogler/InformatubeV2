@@ -95,10 +95,7 @@ const SystemListHeader = ({
             <View style={[styles.profileIcon, nameColor]}>
               <Text style={styles.profileText}>{me?.name.charAt(0)}</Text>
             </View>
-            <TimePicker
-              time={time}
-              playerRef={playerRef}
-            />
+            <Text style={styles.timeText}>{time} </Text>
             <TouchableOpacity
               onPress={handlePressOpen}
             >

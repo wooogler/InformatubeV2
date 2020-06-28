@@ -77,7 +77,7 @@ const CommentItem = ({data, playerRef, setCommentData, setOpenedShowView,
   }
 
   const handlePressTime = () => {
-    playerRef.current.seekTo(min*60+sec);
+    playerRef?.current?.seekTo(min*60+sec);
   }
   
   const handlePressBrowser = () => {
@@ -212,9 +212,6 @@ const styles = StyleSheet.create({
     marginLeft: 20,
     marginRight: 30,
   },
-  commentWebpageButton: {
-    
-  }
 });
 
 export default CommentItem;

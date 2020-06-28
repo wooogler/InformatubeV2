@@ -72,15 +72,17 @@ const ShowCommentView = ({opened, setOpened, data, playerRef}) => {
         data &&
         <>
           <View style={styles.headerContainer}>
-            <Text>
+            <View>
               <Text style={styles.timeText} onPress={handlePressTime}>{data.time} </Text>
-              <Text>{data.text}</Text>
-            </Text>
-            <TouchableOpacity onPress={handlePressSource}>
-              <Text>원본</Text>
+            </View>
+            <View style={{width:250}}>
+              <Text numberOfLines={1} ellipsizeMode='tail'>{data.text}</Text>
+            </View>
+            <TouchableOpacity style={{marginLeft: 15}} onPress={handlePressSource}>
+              <Text style={{color: '#1366D4'}}>원본</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={handlePressClose}>
-              <Icon name='ios-close' size={16}></Icon>
+            <TouchableOpacity style={{marginLeft: 20}}onPress={handlePressClose}>
+              <Text>닫기</Text>
             </TouchableOpacity>
           </View>
           <View style={styles.mainContainer}>
@@ -104,7 +106,6 @@ const styles = StyleSheet.create({
     padding: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between'
   },
   timeText: {
     fontSize: 15,
