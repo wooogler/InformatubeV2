@@ -34,7 +34,7 @@
     "react-native-screens": "^2.7.0",
     "react-native-vector-icons": "^6.6.0",
     "react-native-view-shot": "^3.1.2",
-    "react-native-webview": "^9.2.1",
+    "react-native-webview": "^11.0.0",
     "react-native-youtube-iframe": "^1.2.1",
     "string-to-color": "^2.1.3"
   },
